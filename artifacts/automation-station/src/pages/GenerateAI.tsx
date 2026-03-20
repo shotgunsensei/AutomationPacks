@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Terminal, Code2, Loader2, ArrowRight, Copy, Check, Download, ExternalLink } from "lucide-react";
-import { useGetSubscriptionStatus } from "@workspace/api-client-react";
+import { useGetSubscriptionStatus, useGenerateScript } from "@workspace/api-client-react";
 import { Link } from "wouter";
-
-const API_BASE = import.meta.env.BASE_URL.replace(/\/+$/, "");
 
 interface GeneratedScript {
   id: number;
@@ -20,48 +18,35 @@ interface GeneratedScript {
 export default function GenerateAI() {
   const [prompt, setPrompt] = useState("");
   const [format, setFormat] = useState("powershell");
-  const [isGenerating, setIsGenerating] = useState(false);
   const [generatedScript, setGeneratedScript] = useState<GeneratedScript | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const { data: subStatus } = useGetSubscriptionStatus();
+  const generateMutation = useGenerateScript();
 
   const isPro = subStatus?.tier === "pro";
+  const isGenerating = generateMutation.isPending;
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isPro || !prompt.trim()) return;
 
-    setIsGenerating(true);
     setError(null);
     setGeneratedScript(null);
 
-    try {
-      const response = await fetch(`${API_BASE}/api/scripts/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ prompt: prompt.trim(), format }),
-      });
-
-      if (!response.ok) {
-        let errorMsg = "Failed to generate script";
-        try {
-          const data = await response.json();
-          errorMsg = data.error || errorMsg;
-        } catch {
-          errorMsg = `Server error (${response.status})`;
-        }
-        throw new Error(errorMsg);
+    generateMutation.mutate(
+      { data: { prompt: prompt.trim(), format: format as "powershell" | "python" | "batch" | "bash" } },
+      {
+        onSuccess: (data) => {
+          setGeneratedScript(data.script as GeneratedScript);
+        },
+        onError: (err) => {
+          const message = (err as { payload?: { error?: string } })?.payload?.error
+            || (err instanceof Error ? err.message : "Something went wrong. Please try again.");
+          setError(message);
+        },
       }
-
-      const data = await response.json();
-      setGeneratedScript(data.script);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
-    } finally {
-      setIsGenerating(false);
-    }
+    );
   };
 
   const handleCopy = async () => {

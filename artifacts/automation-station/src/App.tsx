@@ -44,7 +44,7 @@ function Router() {
           </Route>
           
           <Route path="/generate">
-            <ProtectedRoute requireSubscription requirePro>
+            <ProtectedRoute requireSubscription>
               <GenerateAI />
             </ProtectedRoute>
           </Route>

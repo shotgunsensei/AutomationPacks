@@ -23,6 +23,8 @@ import type {
   CheckoutResponse,
   ErrorEnvelope,
   FormatsResponse,
+  GenerateScriptRequest,
+  GenerateScriptResult,
   HandleBrowserLoginCallbackParams,
   HealthStatus,
   ListScriptsParams,
@@ -1386,4 +1388,91 @@ export const useSyncScriptsFromGithub = <
   TContext
 > => {
   return useMutation(getSyncScriptsFromGithubMutationOptions(options));
+};
+
+/**
+ * Pro subscription required. Generates a script based on a natural language description and saves it to the shared library.
+ * @summary Generate an automation script using AI
+ */
+export const getGenerateScriptUrl = () => {
+  return `/api/scripts/generate`;
+};
+
+export const generateScript = async (
+  generateScriptRequest: GenerateScriptRequest,
+  options?: RequestInit,
+): Promise<GenerateScriptResult> => {
+  return customFetch<GenerateScriptResult>(getGenerateScriptUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(generateScriptRequest),
+  });
+};
+
+export const getGenerateScriptMutationOptions = <
+  TError = ErrorType<ErrorEnvelope>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateScript>>,
+    TError,
+    { data: BodyType<GenerateScriptRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof generateScript>>,
+  TError,
+  { data: BodyType<GenerateScriptRequest> },
+  TContext
+> => {
+  const mutationKey = ["generateScript"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof generateScript>>,
+    { data: BodyType<GenerateScriptRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return generateScript(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GenerateScriptMutationResult = NonNullable<
+  Awaited<ReturnType<typeof generateScript>>
+>;
+export type GenerateScriptMutationBody = BodyType<GenerateScriptRequest>;
+export type GenerateScriptMutationError = ErrorType<ErrorEnvelope>;
+
+/**
+ * @summary Generate an automation script using AI
+ */
+export const useGenerateScript = <
+  TError = ErrorType<ErrorEnvelope>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateScript>>,
+    TError,
+    { data: BodyType<GenerateScriptRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof generateScript>>,
+  TError,
+  { data: BodyType<GenerateScriptRequest> },
+  TContext
+> => {
+  return useMutation(getGenerateScriptMutationOptions(options));
 };

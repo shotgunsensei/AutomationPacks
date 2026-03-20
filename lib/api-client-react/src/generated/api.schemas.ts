@@ -130,6 +130,34 @@ export interface SyncResponse {
   message: string;
 }
 
+/**
+ * Target script format
+ */
+export type GenerateScriptRequestFormat =
+  (typeof GenerateScriptRequestFormat)[keyof typeof GenerateScriptRequestFormat];
+
+export const GenerateScriptRequestFormat = {
+  powershell: "powershell",
+  python: "python",
+  batch: "batch",
+  bash: "bash",
+} as const;
+
+export interface GenerateScriptRequest {
+  /**
+   * Natural language description of the automation script to generate
+   * @minLength 10
+   * @maxLength 2000
+   */
+  prompt: string;
+  /** Target script format */
+  format: GenerateScriptRequestFormat;
+}
+
+export interface GenerateScriptResult {
+  script: ScriptDetail;
+}
+
 export type AuthorizationSessionHeaderParameter = string;
 
 export type BeginBrowserLoginParams = {

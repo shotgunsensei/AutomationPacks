@@ -233,3 +233,42 @@ export const SyncScriptsFromGithubResponse = zod.object({
   synced: zod.number(),
   message: zod.string(),
 });
+
+/**
+ * Pro subscription required. Generates a script based on a natural language description and saves it to the shared library.
+ * @summary Generate an automation script using AI
+ */
+export const GenerateScriptHeader = zod.object({
+  Authorization: zod.string().optional(),
+});
+
+export const generateScriptBodyPromptMin = 10;
+export const generateScriptBodyPromptMax = 2000;
+
+export const GenerateScriptBody = zod.object({
+  prompt: zod
+    .string()
+    .min(generateScriptBodyPromptMin)
+    .max(generateScriptBodyPromptMax)
+    .describe(
+      "Natural language description of the automation script to generate",
+    ),
+  format: zod
+    .enum(["powershell", "python", "batch", "bash"])
+    .describe("Target script format"),
+});
+
+export const GenerateScriptResponse = zod.object({
+  script: zod.object({
+    id: zod.number(),
+    name: zod.string(),
+    description: zod.string(),
+    content: zod.string(),
+    fileName: zod.string(),
+    format: zod.string(),
+    category: zod.string(),
+    source: zod.string(),
+    downloadCount: zod.number(),
+    createdAt: zod.string().optional(),
+  }),
+});

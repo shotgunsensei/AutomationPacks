@@ -353,6 +353,52 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
+  /scripts/generate:
+    post:
+      tags: [scripts]
+      operationId: generateScript
+      summary: Generate an automation script using AI
+      description: Pro subscription required. Generates a script based on a natural language description and saves it to the shared library.
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationSessionHeader'
+        - $ref: '#/components/parameters/SessionCookie'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateScriptRequest'
+      responses:
+        '200':
+          description: Script generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateScriptResult'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: Pro subscription required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
 components:
   parameters:
     AuthorizationSessionHeader:
@@ -575,3 +621,22 @@ components:
           type: integer
         message:
           type: string
+    GenerateScriptRequest:
+      type: object
+      required: [prompt, format]
+      properties:
+        prompt:
+          type: string
+          minLength: 10
+          maxLength: 2000
+          description: Natural language description of the automation script to generate
+        format:
+          type: string
+          enum: [powershell, python, batch, bash]
+          description: Target script format
+    GenerateScriptResult:
+      type: object
+      required: [script]
+      properties:
+        script:
+          $ref: '#/components/schemas/ScriptDetail'
