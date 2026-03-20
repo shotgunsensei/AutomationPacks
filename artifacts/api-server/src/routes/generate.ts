@@ -153,6 +153,8 @@ Rules:
         format: script.format,
         category: script.category,
         source: script.source,
+        downloadCount: script.downloadCount ?? 0,
+        createdAt: script.createdAt?.toISOString?.() ?? new Date().toISOString(),
       },
     });
   } catch (err) {

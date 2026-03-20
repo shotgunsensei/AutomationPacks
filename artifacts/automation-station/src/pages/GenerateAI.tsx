@@ -2,23 +2,13 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Terminal, Code2, Loader2, ArrowRight, Copy, Check, Download, ExternalLink } from "lucide-react";
 import { useGetSubscriptionStatus, useGenerateScript } from "@workspace/api-client-react";
+import type { ScriptDetail } from "@workspace/api-client-react";
 import { Link } from "wouter";
-
-interface GeneratedScript {
-  id: number;
-  name: string;
-  description: string;
-  content: string;
-  fileName: string;
-  format: string;
-  category: string;
-  source: string;
-}
 
 export default function GenerateAI() {
   const [prompt, setPrompt] = useState("");
   const [format, setFormat] = useState("powershell");
-  const [generatedScript, setGeneratedScript] = useState<GeneratedScript | null>(null);
+  const [generatedScript, setGeneratedScript] = useState<ScriptDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const { data: subStatus } = useGetSubscriptionStatus();
@@ -38,7 +28,7 @@ export default function GenerateAI() {
       { data: { prompt: prompt.trim(), format: format as "powershell" | "python" | "batch" | "bash" } },
       {
         onSuccess: (data) => {
-          setGeneratedScript(data.script as GeneratedScript);
+          setGeneratedScript(data.script);
         },
         onError: (err) => {
           const message = (err as { payload?: { error?: string } })?.payload?.error
