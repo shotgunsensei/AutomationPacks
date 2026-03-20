@@ -56,14 +56,16 @@ app.post(
   }
 );
 
-const allowedOrigins = process.env.REPLIT_DOMAINS
-  ? process.env.REPLIT_DOMAINS.split(',').map(d => `https://${d}`)
-  : [];
+const allowedOrigins = new Set(
+  process.env.REPLIT_DOMAINS
+    ? process.env.REPLIT_DOMAINS.split(',').map(d => `https://${d}`)
+    : []
+);
 
 app.use(cors({
   credentials: true,
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.some(allowed => origin === allowed || origin.endsWith('.replit.dev') || origin.endsWith('.repl.co'))) {
+    if (!origin || allowedOrigins.has(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
