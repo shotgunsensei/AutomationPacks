@@ -12,7 +12,7 @@ async function initStripe() {
 
   try {
     logger.info('Initializing Stripe schema...');
-    await runMigrations({ databaseUrl, schema: 'stripe' });
+    await runMigrations({ databaseUrl, schema: 'stripe' } as Parameters<typeof runMigrations>[0]);
     logger.info('Stripe schema ready');
 
     const stripeSync = await getStripeSync();
@@ -36,14 +36,30 @@ async function initStripe() {
   }
 }
 
-async function initGithubSync() {
+const GITHUB_SYNC_INTERVAL_MS = 60 * 60 * 1000;
+let syncInProgress = false;
+
+async function runGithubSync() {
+  if (syncInProgress) {
+    logger.info('GitHub sync already in progress, skipping');
+    return;
+  }
+  syncInProgress = true;
   try {
-    logger.info('Starting initial GitHub sync...');
     const result = await syncFromGithub();
     logger.info({ synced: result.synced }, result.message);
   } catch (error) {
-    logger.error({ error }, 'Initial GitHub sync failed');
+    logger.error({ error }, 'GitHub sync failed');
+  } finally {
+    syncInProgress = false;
   }
+}
+
+async function initGithubSync() {
+  logger.info('Starting initial GitHub sync...');
+  await runGithubSync();
+  setInterval(runGithubSync, GITHUB_SYNC_INTERVAL_MS);
+  logger.info('Periodic GitHub sync scheduled (every hour)');
 }
 
 const rawPort = process.env["PORT"];

@@ -1,6 +1,16 @@
 import Stripe from 'stripe';
+import type { StripeSync as StripeSyncType } from 'stripe-replit-sync';
 
-let connectionSettings: any;
+interface ConnectorSettings {
+  settings: {
+    publishable: string;
+    secret: string;
+  };
+}
+
+interface ConnectorResponse {
+  items?: ConnectorSettings[];
+}
 
 async function getCredentials() {
   const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
@@ -30,8 +40,8 @@ async function getCredentials() {
     }
   });
 
-  const data = await response.json();
-  connectionSettings = data.items?.[0];
+  const data = (await response.json()) as ConnectorResponse;
+  const connectionSettings = data.items?.[0];
 
   if (!connectionSettings || (!connectionSettings.settings.publishable || !connectionSettings.settings.secret)) {
     throw new Error(`Stripe ${targetEnvironment} connection not found`);
@@ -45,9 +55,7 @@ async function getCredentials() {
 
 export async function getUncachableStripeClient() {
   const { secretKey } = await getCredentials();
-  return new Stripe(secretKey, {
-    apiVersion: '2025-08-27.basil' as any,
-  });
+  return new Stripe(secretKey);
 }
 
 export async function getStripePublishableKey() {
@@ -60,9 +68,9 @@ export async function getStripeSecretKey() {
   return secretKey;
 }
 
-let stripeSync: any = null;
+let stripeSync: StripeSyncType | null = null;
 
-export async function getStripeSync() {
+export async function getStripeSync(): Promise<StripeSyncType> {
   if (!stripeSync) {
     const { StripeSync } = await import('stripe-replit-sync');
     const secretKey = await getStripeSecretKey();

@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 export default function ScriptDetail() {
   const { id } = useParams<{ id: string }>();
   const { data: script, isLoading, error } = useGetScript(parseInt(id!));
-  const { refetch: download, isFetching: isDownloading } = useDownloadScript(parseInt(id!), { query: { enabled: false } });
+  const { refetch: download, isFetching: isDownloading } = useDownloadScript(parseInt(id!), { query: { enabled: false, queryKey: ['download-script', id] as const } });
 
   const handleDownload = async () => {
     const { data } = await download();

@@ -8,11 +8,10 @@ export function ProtectedRoute({ children, requireSubscription = false, requireP
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const [, setLocation] = useLocation();
   
-  const { data: subStatus, isLoading: isSubLoading } = useGetSubscriptionStatus({
-    query: {
-      enabled: isAuthenticated && requireSubscription
-    }
-  });
+  const shouldFetchSub = isAuthenticated && requireSubscription;
+  const { data: subStatus, isLoading: isSubLoading } = useGetSubscriptionStatus(
+    shouldFetchSub ? undefined : { query: { enabled: false, queryKey: ['subscription-status-disabled'] as const } }
+  );
 
   useEffect(() => {
     if (!isAuthLoading && !isAuthenticated) {

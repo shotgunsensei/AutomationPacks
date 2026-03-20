@@ -40,7 +40,7 @@ router.get("/subscription/status", async (req, res) => {
       hasSubscription: isActive,
       tier: isActive ? (user.subscriptionTier || 'basic') : null,
       status: subscription?.status || null,
-      currentPeriodEnd: subscription?.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : null,
+      currentPeriodEnd: subscription?.current_period_end ? new Date(Number(subscription.current_period_end) * 1000).toISOString() : null,
       stripeCustomerId: user.stripeCustomerId || null,
     });
     res.json(data);
@@ -115,54 +115,71 @@ router.post("/subscription/portal", async (req, res) => {
   }
 });
 
+interface ProductPrice {
+  id: string;
+  unit_amount: number;
+  currency: string;
+  recurring: string | { interval?: string } | null;
+}
+
+interface ProductWithPrices {
+  id: string;
+  name: string;
+  description: string;
+  metadata: string | Record<string, string> | null;
+  prices: ProductPrice[];
+}
+
+function parsePlan(product: ProductWithPrices) {
+  const monthlyPrice = product.prices.find((pr) => {
+    const recurring = typeof pr.recurring === 'string' ? JSON.parse(pr.recurring) : pr.recurring;
+    return recurring?.interval === 'month';
+  });
+
+  const metadata = typeof product.metadata === 'string'
+    ? (JSON.parse(product.metadata) as Record<string, string>)
+    : (product.metadata || {});
+  const features = metadata.features ? metadata.features.split(',').map((f: string) => f.trim()) : [];
+
+  return {
+    id: product.id,
+    name: product.name || 'Plan',
+    description: product.description || '',
+    priceId: monthlyPrice?.id || '',
+    amount: monthlyPrice?.unit_amount || 0,
+    interval: 'month',
+    features,
+  };
+}
+
 router.get("/subscription/plans", async (_req, res) => {
   try {
     const rows = await storage.listProductsWithPrices();
 
     if (rows.length > 0) {
-      const productsMap = new Map<string, any>();
+      const productsMap = new Map<string, ProductWithPrices>();
       for (const row of rows) {
-        if (!productsMap.has(row.product_id as string)) {
-          productsMap.set(row.product_id as string, {
-            id: row.product_id,
-            name: row.product_name,
-            description: row.product_description,
-            metadata: row.product_metadata,
+        const productId = row.product_id as string;
+        if (!productsMap.has(productId)) {
+          productsMap.set(productId, {
+            id: productId,
+            name: row.product_name as string,
+            description: (row.product_description as string) || '',
+            metadata: row.product_metadata as string | Record<string, string> | null,
             prices: [],
           });
         }
         if (row.price_id) {
-          productsMap.get(row.product_id as string).prices.push({
-            id: row.price_id,
-            unit_amount: row.unit_amount,
-            currency: row.currency,
-            recurring: row.recurring,
+          productsMap.get(productId)!.prices.push({
+            id: row.price_id as string,
+            unit_amount: row.unit_amount as number,
+            currency: row.currency as string,
+            recurring: row.recurring as string | { interval?: string } | null,
           });
         }
       }
 
-      const products = Array.from(productsMap.values());
-
-      const plans = products.map((p: any) => {
-        const monthlyPrice = p.prices.find((pr: any) => {
-          const recurring = typeof pr.recurring === 'string' ? JSON.parse(pr.recurring) : pr.recurring;
-          return recurring?.interval === 'month';
-        });
-
-        const metadata = typeof p.metadata === 'string' ? JSON.parse(p.metadata) : (p.metadata || {});
-        const features = metadata.features ? metadata.features.split(',').map((f: string) => f.trim()) : [];
-
-        return {
-          id: p.id,
-          name: p.name || 'Plan',
-          description: p.description || '',
-          priceId: monthlyPrice?.id || '',
-          amount: monthlyPrice?.unit_amount || 0,
-          interval: 'month',
-          features,
-        };
-      });
-
+      const plans = Array.from(productsMap.values()).map(parsePlan);
       const data = GetSubscriptionPlansResponse.parse({ plans });
       res.json(data);
       return;

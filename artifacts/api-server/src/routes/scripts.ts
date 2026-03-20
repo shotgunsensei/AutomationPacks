@@ -122,6 +122,12 @@ router.post("/scripts/sync", async (req, res) => {
     return;
   }
 
+  const user = await storage.getUser(req.user.id);
+  if (!user?.email?.endsWith('@replit.com')) {
+    res.status(403).json({ error: "Admin access required" });
+    return;
+  }
+
   try {
     const result = await syncFromGithub();
     const response = SyncScriptsFromGithubResponse.parse(result);
