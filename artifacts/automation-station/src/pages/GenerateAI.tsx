@@ -1,32 +1,98 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Sparkles, Terminal, Code2, Loader2, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles, Terminal, Code2, Loader2, ArrowRight, Copy, Check, Download, ExternalLink } from "lucide-react";
 import { useGetSubscriptionStatus } from "@workspace/api-client-react";
+import { Link } from "wouter";
+
+const API_BASE = import.meta.env.BASE_URL.replace(/\/+$/, "");
+
+interface GeneratedScript {
+  id: number;
+  name: string;
+  description: string;
+  content: string;
+  fileName: string;
+  format: string;
+  category: string;
+  source: string;
+}
 
 export default function GenerateAI() {
   const [prompt, setPrompt] = useState("");
   const [format, setFormat] = useState("powershell");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedScript, setGeneratedScript] = useState<GeneratedScript | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const { data: subStatus } = useGetSubscriptionStatus();
 
-  const isPro = subStatus?.tier === 'pro';
+  const isPro = subStatus?.tier === "pro";
 
-  const handleGenerate = (e: React.FormEvent) => {
+  const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isPro) return;
+    if (!isPro || !prompt.trim()) return;
+
     setIsGenerating(true);
-    // Future API call would go here
-    setTimeout(() => {
+    setError(null);
+    setGeneratedScript(null);
+
+    try {
+      const response = await fetch(`${API_BASE}/api/scripts/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ prompt: prompt.trim(), format }),
+      });
+
+      if (!response.ok) {
+        let errorMsg = "Failed to generate script";
+        try {
+          const data = await response.json();
+          errorMsg = data.error || errorMsg;
+        } catch {
+          errorMsg = `Server error (${response.status})`;
+        }
+        throw new Error(errorMsg);
+      }
+
+      const data = await response.json();
+      setGeneratedScript(data.script);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
       setIsGenerating(false);
-      alert("AI Generation endpoint not fully wired in backend yet, but UI is ready!");
-    }, 2000);
+    }
+  };
+
+  const handleCopy = async () => {
+    if (!generatedScript) return;
+    await navigator.clipboard.writeText(generatedScript.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownload = () => {
+    if (!generatedScript) return;
+    const blob = new Blob([generatedScript.content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = generatedScript.fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleNewScript = () => {
+    setGeneratedScript(null);
+    setError(null);
+    setPrompt("");
   };
 
   return (
     <div className="min-h-screen pt-24 pb-20 relative">
       {!isPro && (
         <div className="absolute inset-0 z-20 backdrop-blur-sm bg-background/50 flex items-center justify-center pt-20 p-4">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="glass p-8 rounded-3xl max-w-lg text-center border-secondary/30 relative overflow-hidden"
@@ -35,16 +101,22 @@ export default function GenerateAI() {
             <Sparkles className="w-12 h-12 text-secondary mx-auto mb-6" />
             <h2 className="text-3xl font-bold font-display mb-4">Pro Feature</h2>
             <p className="text-muted-foreground mb-8 text-lg">
-              Unlock the power of AI script generation. Describe any automation task and get a ready-to-use script instantly.
+              Unlock the power of AI script generation. Describe any automation task and get a ready-to-use script
+              instantly.
             </p>
-            <a href="/pricing" className="inline-flex px-8 py-4 rounded-xl bg-secondary text-white font-semibold hover:bg-secondary/90 transition-colors w-full justify-center shadow-lg shadow-secondary/25">
+            <a
+              href="/pricing"
+              className="inline-flex px-8 py-4 rounded-xl bg-secondary text-white font-semibold hover:bg-secondary/90 transition-colors w-full justify-center shadow-lg shadow-secondary/25"
+            >
               Upgrade to Pro for $10/mo
             </a>
           </motion.div>
         </div>
       )}
 
-      <div className={`max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 ${!isPro ? 'pointer-events-none opacity-50 filter blur-[2px]' : ''}`}>
+      <div
+        className={`max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 ${!isPro ? "pointer-events-none opacity-50 filter blur-[2px]" : ""}`}
+      >
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-secondary/10 text-secondary mb-6 border border-secondary/20 shadow-[0_0_30px_rgba(139,92,246,0.3)]">
             <Sparkles className="w-8 h-8" />
@@ -53,60 +125,158 @@ export default function GenerateAI() {
           <p className="text-xl text-muted-foreground">Describe your workflow. We'll write the code.</p>
         </div>
 
-        <motion.div className="glass rounded-3xl p-8 relative overflow-hidden">
-          <form onSubmit={handleGenerate}>
-            <div className="mb-8">
-              <label className="block text-sm font-medium text-foreground mb-3">Target Format</label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { id: 'powershell', label: 'PowerShell', icon: <Terminal className="w-4 h-4" /> },
-                  { id: 'python', label: 'Python', icon: <Code2 className="w-4 h-4" /> },
-                  { id: 'batch', label: 'Batch', icon: <Terminal className="w-4 h-4" /> },
-                  { id: 'bash', label: 'Bash', icon: <Terminal className="w-4 h-4" /> },
-                ].map((f) => (
+        <AnimatePresence mode="wait">
+          {generatedScript ? (
+            <motion.div
+              key="result"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
+            >
+              <div className="glass rounded-3xl p-8 relative overflow-hidden">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/20 text-secondary">
+                        AI Generated
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/5 text-muted-foreground">
+                        {generatedScript.format}
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-bold mt-2">{generatedScript.name}</h3>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleCopy}
+                      className="p-2.5 rounded-xl border border-white/10 hover:bg-white/5 transition-colors"
+                      title="Copy to clipboard"
+                    >
+                      {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                    </button>
+                    <button
+                      onClick={handleDownload}
+                      className="p-2.5 rounded-xl border border-white/10 hover:bg-white/5 transition-colors"
+                      title="Download script"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <pre className="bg-background/80 rounded-xl p-6 overflow-x-auto border border-white/5 text-sm leading-relaxed max-h-[500px] overflow-y-auto">
+                    <code>{generatedScript.content}</code>
+                  </pre>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 mt-6">
                   <button
-                    key={f.id}
-                    type="button"
-                    onClick={() => setFormat(f.id)}
-                    className={`p-4 rounded-xl border flex flex-col items-center gap-3 transition-all ${
-                      format === f.id 
-                        ? 'border-secondary bg-secondary/10 text-secondary' 
-                        : 'border-white/10 bg-white/5 hover:bg-white/10 text-muted-foreground'
-                    }`}
+                    onClick={handleNewScript}
+                    className="flex-1 px-6 py-3 rounded-xl bg-secondary hover:bg-secondary/90 text-white font-bold transition-colors flex items-center justify-center gap-2"
                   >
-                    {f.icon}
-                    <span className="font-medium text-sm">{f.label}</span>
+                    <Sparkles className="w-4 h-4" /> Generate Another
                   </button>
-                ))}
+                  <Link
+                    href={`/scripts/${generatedScript.id}`}
+                    className="flex-1 px-6 py-3 rounded-xl border border-white/10 hover:bg-white/5 text-foreground font-medium transition-colors flex items-center justify-center gap-2"
+                  >
+                    <ExternalLink className="w-4 h-4" /> View in Library
+                  </Link>
+                </div>
               </div>
-            </div>
 
-            <div className="mb-8">
-              <label className="block text-sm font-medium text-foreground mb-3">Description</label>
-              <textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="E.g., Write a script that checks my downloads folder and moves all images to a 'Pictures' folder and PDFs to a 'Documents' folder..."
-                className="w-full h-40 px-4 py-3 bg-background border border-white/10 rounded-xl focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary resize-none"
-                required
-              />
-            </div>
+              <p className="text-center text-sm text-muted-foreground">
+                This script has been automatically added to the shared library for all subscribers.
+              </p>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="form"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="glass rounded-3xl p-8 relative overflow-hidden"
+            >
+              <form onSubmit={handleGenerate}>
+                <div className="mb-8">
+                  <label className="block text-sm font-medium text-foreground mb-3">Target Format</label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {[
+                      { id: "powershell", label: "PowerShell", icon: <Terminal className="w-4 h-4" /> },
+                      { id: "python", label: "Python", icon: <Code2 className="w-4 h-4" /> },
+                      { id: "batch", label: "Batch", icon: <Terminal className="w-4 h-4" /> },
+                      { id: "bash", label: "Bash", icon: <Terminal className="w-4 h-4" /> },
+                    ].map((f) => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => setFormat(f.id)}
+                        className={`p-4 rounded-xl border flex flex-col items-center gap-3 transition-all ${
+                          format === f.id
+                            ? "border-secondary bg-secondary/10 text-secondary"
+                            : "border-white/10 bg-white/5 hover:bg-white/10 text-muted-foreground"
+                        }`}
+                      >
+                        {f.icon}
+                        <span className="font-medium text-sm">{f.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                disabled={isGenerating || !prompt}
-                className="px-8 py-4 rounded-xl bg-secondary hover:bg-secondary/90 text-white font-bold transition-all shadow-lg shadow-secondary/25 hover:shadow-secondary/40 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isGenerating ? (
-                  <><Loader2 className="w-5 h-5 animate-spin" /> Generating Magic...</>
-                ) : (
-                  <>Generate Script <ArrowRight className="w-5 h-5" /></>
-                )}
-              </button>
-            </div>
-          </form>
-        </motion.div>
+                <div className="mb-8">
+                  <label className="block text-sm font-medium text-foreground mb-3">Description</label>
+                  <textarea
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    placeholder="E.g., Write a script that checks my downloads folder and moves all images to a 'Pictures' folder and PDFs to a 'Documents' folder..."
+                    className="w-full h-40 px-4 py-3 bg-background border border-white/10 rounded-xl focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary resize-none"
+                    required
+                    maxLength={2000}
+                    disabled={isGenerating}
+                  />
+                  <div className="flex justify-between mt-2">
+                    <span className="text-xs text-muted-foreground">Minimum 10 characters</span>
+                    <span className="text-xs text-muted-foreground">{prompt.length}/2000</span>
+                  </div>
+                </div>
+
+                <AnimatePresence>
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm"
+                    >
+                      {error}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={isGenerating || !prompt || prompt.trim().length < 10}
+                    className="px-8 py-4 rounded-xl bg-secondary hover:bg-secondary/90 text-white font-bold transition-all shadow-lg shadow-secondary/25 hover:shadow-secondary/40 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" /> Generating...
+                      </>
+                    ) : (
+                      <>
+                        Generate Script <ArrowRight className="w-5 h-5" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

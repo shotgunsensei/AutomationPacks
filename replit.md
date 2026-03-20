@@ -75,6 +75,14 @@ artifacts-monorepo/
 - `/checkout/success`, `/checkout/cancel` — Stripe checkout redirects
 - `/admin` — Admin dashboard (requires auth + isAdmin flag)
 
+### AI Script Generation
+- Pro-only feature at `/generate` — uses OpenAI (gpt-5.2) to generate automation scripts
+- Backend: `POST /api/scripts/generate` in `generate.ts` — gated by `requireProSubscription` middleware
+- Accepts `prompt` (string, min 10 chars, max 2000) and `format` (powershell/python/batch/bash)
+- Generated scripts are auto-saved to `scripts` table with `source: "ai_generated"` and `category: "ai-generated"`
+- Scripts appear in the shared library for all subscribers to browse
+- Uses `@workspace/integrations-openai-ai-server` — no API key needed (Replit AI Integrations, billed to credits)
+
 ### Admin Panel
 - Admin dashboard at `/admin` — manages users, subscriptions, and scripts
 - Admin access controlled by `isAdmin` boolean column on `users` table
@@ -109,8 +117,9 @@ Express 5 API server with auth, Stripe payments, GitHub sync, and script managem
 
 - Entry: `src/index.ts` — initializes Stripe, starts server, triggers GitHub sync
 - App: `src/app.ts` — webhook route (raw body), CORS, auth middleware, routes at `/api`
-- Routes: `src/routes/` — auth.ts, scripts.ts, subscription.ts, admin.ts, health.ts
+- Routes: `src/routes/` — auth.ts, scripts.ts, subscription.ts, admin.ts, generate.ts, health.ts
 - Services: `stripeClient.ts`, `stripeService.ts`, `webhookHandlers.ts`, `githubSync.ts`, `storage.ts`
+- AI: OpenAI integration via Replit AI Integrations (gpt-5.2 for script generation)
 
 ### `artifacts/automation-station` (`@workspace/automation-station`)
 
