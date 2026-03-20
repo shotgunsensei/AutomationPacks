@@ -72,9 +72,16 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-await initStripe();
+async function main() {
+  await initStripe();
 
-app.listen(port, () => {
-  logger.info({ port }, "Server listening");
-  initGithubSync();
+  app.listen(port, () => {
+    logger.info({ port }, "Server listening");
+    initGithubSync();
+  });
+}
+
+main().catch((err) => {
+  logger.error({ error: err }, "Failed to start server");
+  process.exit(1);
 });
