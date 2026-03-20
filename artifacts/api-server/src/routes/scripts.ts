@@ -1,4 +1,4 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request, type Response, type NextFunction } from "express";
 import { storage } from "../storage";
 import { syncFromGithub } from "../githubSync";
 import {
@@ -10,6 +10,33 @@ import {
 
 const router: IRouter = Router();
 
+async function requireActiveSubscription(req: Request, res: Response, next: NextFunction) {
+  if (!req.isAuthenticated()) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
+  const user = await storage.getUser(req.user.id);
+  if (!user) {
+    res.status(401).json({ error: "User not found" });
+    return;
+  }
+
+  if (!user.stripeSubscriptionId) {
+    res.status(403).json({ error: "Active subscription required" });
+    return;
+  }
+
+  const subscription = await storage.getSubscription(user.stripeSubscriptionId);
+  const isActive = subscription?.status === 'active' || subscription?.status === 'trialing';
+  if (!isActive) {
+    res.status(403).json({ error: "Active subscription required" });
+    return;
+  }
+
+  next();
+}
+
 router.get("/scripts/formats", async (_req, res) => {
   try {
     const data = await storage.getFormatsAndCategories();
@@ -20,30 +47,7 @@ router.get("/scripts/formats", async (_req, res) => {
   }
 });
 
-router.get("/scripts", async (req, res) => {
-  if (!req.isAuthenticated()) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-
-  const user = await storage.getUser(req.user.id);
-  if (!user?.stripeSubscriptionId) {
-    const sub = null;
-    if (!user?.subscriptionTier) {
-      res.status(403).json({ error: "Active subscription required" });
-      return;
-    }
-  }
-
-  if (user?.stripeSubscriptionId) {
-    const subscription = await storage.getSubscription(user.stripeSubscriptionId);
-    const isActive = subscription?.status === 'active' || subscription?.status === 'trialing';
-    if (!isActive) {
-      res.status(403).json({ error: "Active subscription required" });
-      return;
-    }
-  }
-
+router.get("/scripts", requireActiveSubscription, async (req, res) => {
   try {
     const { format, category, search, page, limit } = req.query;
     const result = await storage.listScripts({
@@ -70,12 +74,7 @@ router.get("/scripts", async (req, res) => {
   }
 });
 
-router.get("/scripts/:id", async (req, res) => {
-  if (!req.isAuthenticated()) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-
+router.get("/scripts/:id", requireActiveSubscription, async (req, res) => {
   try {
     const id = Number(req.params.id);
     const script = await storage.getScript(id);
@@ -96,12 +95,7 @@ router.get("/scripts/:id", async (req, res) => {
   }
 });
 
-router.get("/scripts/:id/download", async (req, res) => {
-  if (!req.isAuthenticated()) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-
+router.get("/scripts/:id/download", requireActiveSubscription, async (req, res) => {
   try {
     const id = Number(req.params.id);
     const script = await storage.getScript(id);

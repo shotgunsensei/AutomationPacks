@@ -68,7 +68,7 @@ export default function Account() {
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="w-4 h-4" />
-                    Renews: {subStatus.currentPeriodEnd ? new Date(parseInt(subStatus.currentPeriodEnd) * 1000).toLocaleDateString() : 'N/A'}
+                    Renews: {subStatus.currentPeriodEnd ? new Date(subStatus.currentPeriodEnd).toLocaleDateString() : 'N/A'}
                   </div>
                 </div>
 

@@ -52,6 +52,11 @@ export class Storage {
     return user;
   }
 
+  async getUserByStripeCustomerId(customerId: string) {
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.stripeCustomerId, customerId));
+    return user;
+  }
+
   async upsertUser(userData: {
     id: string;
     email?: string | null;
