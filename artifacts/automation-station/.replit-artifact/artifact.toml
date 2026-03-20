@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Automation Station"
+version = "1.0.0"
+id = "artifacts/automation-station"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20723
+
+[services.development]
+run = "pnpm --filter @workspace/automation-station run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/automation-station", "run", "build" ]
+publicDir = "artifacts/automation-station/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20723"
+BASE_PATH = "/"
