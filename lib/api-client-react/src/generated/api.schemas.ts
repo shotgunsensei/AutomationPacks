@@ -8,3 +8,144 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface AuthUser {
+  id: string;
+  /** @nullable */
+  email: string | null;
+  /** @nullable */
+  firstName: string | null;
+  /** @nullable */
+  lastName: string | null;
+  /** @nullable */
+  profileImageUrl: string | null;
+}
+
+export interface AuthUserEnvelope {
+  user: AuthUser | null;
+}
+
+export interface MobileTokenExchangeRequest {
+  /** @minLength 1 */
+  code: string;
+  /** @minLength 1 */
+  code_verifier: string;
+  /** @minLength 1 */
+  redirect_uri: string;
+  /** @minLength 1 */
+  state: string;
+  /** @minLength 1 */
+  nonce?: string;
+}
+
+export interface MobileTokenExchangeSuccess {
+  token: string;
+}
+
+export const LogoutSuccessValue = {
+  success: true,
+} as const;
+export type LogoutSuccess = typeof LogoutSuccessValue;
+
+export interface ErrorEnvelope {
+  error: string;
+}
+
+export interface SubscriptionStatusResponse {
+  hasSubscription: boolean;
+  /** @nullable */
+  tier: string | null;
+  /** @nullable */
+  status?: string | null;
+  /** @nullable */
+  currentPeriodEnd?: string | null;
+  /** @nullable */
+  stripeCustomerId?: string | null;
+}
+
+export interface CheckoutRequest {
+  priceId: string;
+}
+
+export interface CheckoutResponse {
+  url: string;
+}
+
+export interface PortalResponse {
+  url: string;
+}
+
+export interface Plan {
+  id: string;
+  name: string;
+  description: string;
+  priceId: string;
+  amount: number;
+  interval: string;
+  features?: string[];
+}
+
+export interface PlansResponse {
+  plans: Plan[];
+}
+
+export interface ScriptSummary {
+  id: number;
+  name: string;
+  description: string;
+  format: string;
+  category: string;
+  source: string;
+  downloadCount: number;
+  createdAt?: string;
+}
+
+export interface ScriptsListResponse {
+  scripts: ScriptSummary[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export interface ScriptDetail {
+  id: number;
+  name: string;
+  description: string;
+  content: string;
+  fileName: string;
+  format: string;
+  category: string;
+  source: string;
+  downloadCount: number;
+  createdAt?: string;
+}
+
+export interface FormatsResponse {
+  formats: string[];
+  categories: string[];
+}
+
+export interface SyncResponse {
+  synced: number;
+  message: string;
+}
+
+export type AuthorizationSessionHeaderParameter = string;
+
+export type BeginBrowserLoginParams = {
+  returnTo?: string;
+};
+
+export type HandleBrowserLoginCallbackParams = {
+  code?: string;
+  state?: string;
+  iss?: string;
+};
+
+export type ListScriptsParams = {
+  format?: string;
+  category?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+};

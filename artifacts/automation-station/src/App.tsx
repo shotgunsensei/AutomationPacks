@@ -2,27 +2,75 @@ import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+
+// Import Components
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+
+// Import Pages
+import Home from "@/pages/Home";
+import Pricing from "@/pages/Pricing";
+import Library from "@/pages/Library";
+import ScriptDetail from "@/pages/ScriptDetail";
+import Account from "@/pages/Account";
+import GenerateAI from "@/pages/GenerateAI";
+import CheckoutSuccess from "@/pages/CheckoutSuccess";
+import CheckoutCancel from "@/pages/CheckoutCancel";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
 
-function Home() {
-  return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Replit Agent is building...</h1>
-        <p className="mt-2 text-sm text-gray-600">Your app will appear here once it's ready.</p>
-      </div>
-    </div>
-  );
-}
-
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route component={NotFound} />
-    </Switch>
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <main className="flex-1 flex flex-col">
+        <Switch>
+          <Route path="/" component={Home} />
+          <Route path="/pricing" component={Pricing} />
+          
+          <Route path="/library">
+            <ProtectedRoute requireSubscription>
+              <Library />
+            </ProtectedRoute>
+          </Route>
+          
+          <Route path="/scripts/:id">
+            <ProtectedRoute requireSubscription>
+              <ScriptDetail />
+            </ProtectedRoute>
+          </Route>
+          
+          <Route path="/generate">
+            <ProtectedRoute requireSubscription requirePro>
+              <GenerateAI />
+            </ProtectedRoute>
+          </Route>
+          
+          <Route path="/account">
+            <ProtectedRoute>
+              <Account />
+            </ProtectedRoute>
+          </Route>
+          
+          <Route path="/checkout/success">
+            <ProtectedRoute>
+              <CheckoutSuccess />
+            </ProtectedRoute>
+          </Route>
+          
+          <Route path="/checkout/cancel">
+            <ProtectedRoute>
+              <CheckoutCancel />
+            </ProtectedRoute>
+          </Route>
+          
+          <Route component={NotFound} />
+        </Switch>
+      </main>
+      <Footer />
+    </div>
   );
 }
 

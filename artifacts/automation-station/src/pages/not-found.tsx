@@ -1,21 +1,24 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Link } from "wouter";
 import { AlertCircle } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md mx-4">
-        <CardContent className="pt-6">
-          <div className="flex mb-4 gap-2">
-            <AlertCircle className="h-8 w-8 text-red-500" />
-            <h1 className="text-2xl font-bold text-gray-900">404 Page Not Found</h1>
-          </div>
-
-          <p className="mt-4 text-sm text-gray-600">
-            Did you forget to add the page to the router?
-          </p>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center max-w-md"
+      >
+        <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-6 opacity-80" />
+        <h1 className="text-4xl font-bold font-display mb-4">404 - Page Not Found</h1>
+        <p className="text-muted-foreground mb-8">
+          The script or page you are looking for doesn't exist or has been moved.
+        </p>
+        <Link href="/" className="inline-flex px-8 py-3 rounded-xl bg-white/10 hover:bg-white/20 font-medium transition-colors">
+          Return Home
+        </Link>
+      </motion.div>
     </div>
   );
 }
