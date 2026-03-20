@@ -1,11 +1,26 @@
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@workspace/replit-auth-web";
-import { Terminal, LogOut, User, Sparkles } from "lucide-react";
+import { Terminal, LogOut, User, Sparkles, Shield } from "lucide-react";
 import { motion } from "framer-motion";
+
+const API_BASE = import.meta.env.BASE_URL.replace(/\/+$/, "");
 
 export function Navbar() {
   const [location] = useLocation();
   const { user, isAuthenticated, login, logout, isLoading } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetch(`${API_BASE}/api/admin/check`, { credentials: "include" })
+        .then(r => r.json())
+        .then(d => setIsAdmin(d.isAdmin))
+        .catch(() => setIsAdmin(false));
+    } else {
+      setIsAdmin(false);
+    }
+  }, [isAuthenticated]);
 
   const navItems = [
     { label: "Home", path: "/" },
@@ -13,7 +28,10 @@ export function Navbar() {
     ...(isAuthenticated ? [
       { label: "Script Library", path: "/library" },
       { label: "AI Generator", path: "/generate" },
-    ] : [])
+    ] : []),
+    ...(isAdmin ? [
+      { label: "Admin", path: "/admin" },
+    ] : []),
   ];
 
   return (
@@ -45,6 +63,7 @@ export function Navbar() {
                   : "text-muted-foreground hover:text-foreground hover:bg-white/5"
               }`}
             >
+              {item.label === "Admin" && <Shield className="w-4 h-4 inline-block mr-2 text-yellow-400" />}
               {item.label === "AI Generator" && <Sparkles className="w-4 h-4 inline-block mr-2 text-secondary" />}
               {item.label}
               {location === item.path && (

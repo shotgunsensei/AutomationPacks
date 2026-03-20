@@ -1,5 +1,5 @@
 import { usersTable, scriptsTable } from '@workspace/db';
-import { eq, sql, and, ilike, or, count } from 'drizzle-orm';
+import { eq, sql, and, ilike, or, count, desc } from 'drizzle-orm';
 import { db } from '@workspace/db';
 
 export class Storage {
@@ -193,6 +193,100 @@ export class Storage {
     }
     const [script] = await db.insert(scriptsTable).values(data).returning();
     return { script, isNew: true };
+  }
+  async listUsers(options: { search?: string; page?: number; limit?: number }) {
+    const { search, page = 1, limit = 20 } = options;
+    const conditions = [];
+
+    if (search) {
+      conditions.push(
+        or(
+          ilike(usersTable.email, `%${search}%`),
+          ilike(usersTable.firstName, `%${search}%`),
+          ilike(usersTable.lastName, `%${search}%`)
+        )!
+      );
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    const offset = (page - 1) * limit;
+
+    const [users, totalResult] = await Promise.all([
+      db.select().from(usersTable).where(whereClause).limit(limit).offset(offset).orderBy(desc(usersTable.createdAt)),
+      db.select({ count: count() }).from(usersTable).where(whereClause),
+    ]);
+
+    return {
+      users,
+      total: totalResult[0]?.count ?? 0,
+      page,
+      totalPages: Math.ceil((totalResult[0]?.count ?? 0) / limit),
+    };
+  }
+
+  async updateUser(userId: string, data: {
+    email?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    subscriptionTier?: string | null;
+    stripeSubscriptionId?: string | null;
+    stripeCustomerId?: string | null;
+    isAdmin?: boolean;
+  }) {
+    const [user] = await db.update(usersTable)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(usersTable.id, userId))
+      .returning();
+    return user;
+  }
+
+  async deleteUser(userId: string) {
+    await db.delete(usersTable).where(eq(usersTable.id, userId));
+  }
+
+  async updateScript(id: number, data: {
+    name?: string;
+    description?: string;
+    content?: string;
+    fileName?: string;
+    format?: string;
+    category?: string;
+  }) {
+    const [script] = await db.update(scriptsTable)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(scriptsTable.id, id))
+      .returning();
+    return script;
+  }
+
+  async deleteScript(id: number) {
+    await db.delete(scriptsTable).where(eq(scriptsTable.id, id));
+  }
+
+  async createScript(data: {
+    name: string;
+    description: string;
+    content: string;
+    fileName: string;
+    format: string;
+    category: string;
+    source: string;
+  }) {
+    const [script] = await db.insert(scriptsTable).values(data).returning();
+    return script;
+  }
+
+  async getStats() {
+    const [userCount] = await db.select({ count: count() }).from(usersTable);
+    const [scriptCount] = await db.select({ count: count() }).from(scriptsTable);
+    const [subscribedCount] = await db.select({ count: count() }).from(usersTable)
+      .where(sql`${usersTable.subscriptionTier} IS NOT NULL`);
+
+    return {
+      totalUsers: userCount?.count ?? 0,
+      totalScripts: scriptCount?.count ?? 0,
+      subscribedUsers: subscribedCount?.count ?? 0,
+    };
   }
 }
 

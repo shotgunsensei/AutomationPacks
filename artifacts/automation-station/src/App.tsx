@@ -17,6 +17,7 @@ import Account from "@/pages/Account";
 import GenerateAI from "@/pages/GenerateAI";
 import CheckoutSuccess from "@/pages/CheckoutSuccess";
 import CheckoutCancel from "@/pages/CheckoutCancel";
+import Admin from "@/pages/Admin";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -65,6 +66,8 @@ function Router() {
               <CheckoutCancel />
             </ProtectedRoute>
           </Route>
+          
+          <Route path="/admin" component={Admin} />
           
           <Route component={NotFound} />
         </Switch>

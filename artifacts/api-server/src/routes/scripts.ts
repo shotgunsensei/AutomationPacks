@@ -123,7 +123,7 @@ router.post("/scripts/sync", async (req, res) => {
   }
 
   const user = await storage.getUser(req.user.id);
-  if (!user?.email?.endsWith('@replit.com')) {
+  if (!user?.isAdmin) {
     res.status(403).json({ error: "Admin access required" });
     return;
   }

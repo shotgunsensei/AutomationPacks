@@ -73,9 +73,17 @@ artifacts-monorepo/
 - `/generate` — AI script generator (requires auth + Pro subscription)
 - `/account` — Profile + billing management (requires auth)
 - `/checkout/success`, `/checkout/cancel` — Stripe checkout redirects
+- `/admin` — Admin dashboard (requires auth + isAdmin flag)
+
+### Admin Panel
+- Admin dashboard at `/admin` — manages users, subscriptions, and scripts
+- Admin access controlled by `isAdmin` boolean column on `users` table
+- Auto-admin detection via `ADMIN_USERNAMES` env var (comma-separated Replit usernames)
+- Backend: `src/routes/admin.ts` — all routes guarded by `requireAdmin` middleware (DB-based check)
+- Features: stats overview, user list/search/edit/delete, script list/search/edit/delete, manual GitHub sync trigger
 
 ### Database Schema
-- `users` — id, email, firstName, lastName, profileImageUrl, stripeCustomerId, stripeSubscriptionId, subscriptionTier
+- `users` — id, email, firstName, lastName, profileImageUrl, stripeCustomerId, stripeSubscriptionId, subscriptionTier, isAdmin
 - `sessions` — sid, sess, expire
 - `scripts` — id, name, description, content, format, category, source, githubPath, downloadCount, timestamps
 - `stripe.*` — managed by stripe-replit-sync (products, prices, customers, subscriptions, etc.)
@@ -101,7 +109,7 @@ Express 5 API server with auth, Stripe payments, GitHub sync, and script managem
 
 - Entry: `src/index.ts` — initializes Stripe, starts server, triggers GitHub sync
 - App: `src/app.ts` — webhook route (raw body), CORS, auth middleware, routes at `/api`
-- Routes: `src/routes/` — auth.ts, scripts.ts, subscription.ts, health.ts
+- Routes: `src/routes/` — auth.ts, scripts.ts, subscription.ts, admin.ts, health.ts
 - Services: `stripeClient.ts`, `stripeService.ts`, `webhookHandlers.ts`, `githubSync.ts`, `storage.ts`
 
 ### `artifacts/automation-station` (`@workspace/automation-station`)

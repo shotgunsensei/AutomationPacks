@@ -68,13 +68,18 @@ async function upsertUser(claims: Record<string, unknown>) {
       | null,
   };
 
+  const adminUsernames = (process.env.ADMIN_USERNAMES || "").split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
+  const username = ((claims.preferred_username as string) || "").toLowerCase();
+  const shouldBeAdmin = username.length > 0 && adminUsernames.includes(username);
+
   const [user] = await db
     .insert(usersTable)
-    .values(userData)
+    .values({ ...userData, isAdmin: shouldBeAdmin })
     .onConflictDoUpdate({
       target: usersTable.id,
       set: {
         ...userData,
+        isAdmin: shouldBeAdmin,
         updatedAt: new Date(),
       },
     })
