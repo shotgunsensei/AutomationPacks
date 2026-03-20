@@ -78,7 +78,7 @@ export class Storage {
 
   async updateUserStripeInfo(userId: string, stripeInfo: {
     stripeCustomerId?: string;
-    stripeSubscriptionId?: string;
+    stripeSubscriptionId?: string | null;
     subscriptionTier?: string | null;
   }) {
     const [user] = await db.update(usersTable)

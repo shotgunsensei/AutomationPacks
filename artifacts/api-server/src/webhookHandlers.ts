@@ -68,7 +68,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   if (!user) return;
 
   await storage.updateUserStripeInfo(user.id, {
-    stripeSubscriptionId: null as any,
+    stripeSubscriptionId: null,
     subscriptionTier: null,
   });
   logger.info({ userId: user.id }, 'Subscription deleted');
