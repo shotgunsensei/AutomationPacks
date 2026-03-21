@@ -23,8 +23,22 @@ export function Navbar() {
     }
   }, [isAuthenticated]);
 
+  const isHome = location === "/";
+
+  const handleSmoothScroll = (sectionId: string) => {
+    if (!isHome) return;
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   const navItems = [
     { label: "Home", path: "/" },
+    ...(isHome ? [
+      { label: "Features", path: "/#features", anchor: "features" },
+      { label: "Use Cases", path: "/#use-cases", anchor: "use-cases" },
+    ] : []),
     { label: "Pricing", path: "/pricing" },
     ...(isAuthenticated ? [
       { label: "Script Library", path: "/library" },
@@ -55,27 +69,41 @@ export function Navbar() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                href={item.path}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${
-                  location === item.path
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-                }`}
-              >
-                {item.label === "Admin" && <Shield className="w-4 h-4 inline-block mr-2 text-yellow-400" />}
-                {item.label === "AI Generator" && <Sparkles className="w-4 h-4 inline-block mr-2 text-primary" />}
-                {item.label}
-                {location === item.path && (
-                  <motion.div
-                    layoutId="navbar-indicator"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-ninja-red"
-                  />
-                )}
-              </Link>
-            ))}
+            {navItems.map((item) => {
+              const isAnchor = "anchor" in item && (item as any).anchor;
+              if (isAnchor) {
+                return (
+                  <button
+                    key={item.path}
+                    onClick={() => handleSmoothScroll((item as any).anchor)}
+                    className="px-4 py-2 rounded-lg text-sm font-medium transition-colors text-muted-foreground hover:text-foreground hover:bg-white/5"
+                  >
+                    {item.label}
+                  </button>
+                );
+              }
+              return (
+                <Link
+                  key={item.path}
+                  href={item.path}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${
+                    location === item.path
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                  }`}
+                >
+                  {item.label === "Admin" && <Shield className="w-4 h-4 inline-block mr-2 text-yellow-400" />}
+                  {item.label === "AI Generator" && <Sparkles className="w-4 h-4 inline-block mr-2 text-primary" />}
+                  {item.label}
+                  {location === item.path && (
+                    <motion.div
+                      layoutId="navbar-indicator"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-ninja-red"
+                    />
+                  )}
+                </Link>
+              );
+            })}
           </nav>
 
           <div className="flex items-center gap-3">
@@ -128,18 +156,32 @@ export function Navbar() {
             className="fixed inset-x-0 top-20 z-40 glass border-b border-border/50 md:hidden"
           >
             <nav className="flex flex-col p-4 gap-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.path}
-                  href={item.path}
-                  onClick={() => setMobileOpen(false)}
-                  className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                    location === item.path ? "bg-white/5 text-foreground" : "text-muted-foreground hover:bg-white/5"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {navItems.map((item) => {
+                const isAnchor = "anchor" in item && (item as any).anchor;
+                if (isAnchor) {
+                  return (
+                    <button
+                      key={item.path}
+                      onClick={() => { handleSmoothScroll((item as any).anchor); setMobileOpen(false); }}
+                      className="px-4 py-3 rounded-lg text-sm font-medium transition-colors text-muted-foreground hover:bg-white/5 text-left"
+                    >
+                      {item.label}
+                    </button>
+                  );
+                }
+                return (
+                  <Link
+                    key={item.path}
+                    href={item.path}
+                    onClick={() => setMobileOpen(false)}
+                    className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                      location === item.path ? "bg-white/5 text-foreground" : "text-muted-foreground hover:bg-white/5"
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
             </nav>
           </motion.div>
         )}

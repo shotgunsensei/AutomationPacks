@@ -3,12 +3,13 @@ import { useRef } from "react";
 import { Brain, Link2, Zap, Monitor, Package, Lock, Bot, ArrowRight, Layers, Cpu, Box, Vault } from "lucide-react";
 import { Link } from "wouter";
 
-function Section({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function Section({ children, className = "", id }: { children: React.ReactNode; className?: string; id?: string }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
   return (
     <motion.section
       ref={ref}
+      id={id}
       initial={{ opacity: 0, y: 40 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.7, ease: "easeOut" }}
@@ -146,7 +147,7 @@ export default function Home() {
       </section>
 
       {/* What It Does */}
-      <Section className="py-24 bg-card/20">
+      <Section className="py-24 bg-card/20" id="features">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-black font-display mb-4">Stop Doing Work. <span className="text-gradient">Start Orchestrating It.</span></h2>
@@ -204,7 +205,7 @@ export default function Home() {
       </Section>
 
       {/* Use Cases */}
-      <Section className="py-24 bg-card/20 circuit-pattern">
+      <Section className="py-24 bg-card/20 circuit-pattern" id="use-cases">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-black font-display mb-4">Real <span className="text-gradient">Use Cases</span></h2>

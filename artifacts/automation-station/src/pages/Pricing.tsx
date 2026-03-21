@@ -21,7 +21,6 @@ export default function Pricing() {
   };
 
   const isPro = (name: string) => name.toLowerCase().includes('pro');
-  const isEnterprise = (name: string) => name.toLowerCase().includes('enterprise');
 
   return (
     <div className="min-h-screen pt-32 pb-24">
@@ -89,19 +88,19 @@ export default function Pricing() {
                 </ul>
 
                 <button
-                  onClick={() => isEnterprise(plan.name) ? window.open('mailto:support@ninjamation.com', '_blank') : handleSubscribe(plan.priceId)}
-                  disabled={checkoutPending && !isEnterprise(plan.name)}
+                  onClick={() => handleSubscribe(plan.priceId)}
+                  disabled={checkoutPending}
                   className={`w-full py-4 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
                     isPro(plan.name)
                       ? 'bg-ninja-red hover:bg-red-600 text-white shadow-lg red-glow'
                       : 'bg-primary hover:bg-primary/90 text-primary-foreground neon-shadow neon-shadow-hover'
                   }`}
                 >
-                  {checkoutPending && !isEnterprise(plan.name) ? (
+                  {checkoutPending ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
                     <>
-                      {isEnterprise(plan.name) ? 'Contact Sales' : 'Subscribe Now'}
+                      Subscribe Now
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
