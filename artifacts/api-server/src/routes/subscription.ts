@@ -166,11 +166,16 @@ function parsePlan(product: ProductWithPrices) {
 
 router.get("/subscription/plans", async (_req, res) => {
   try {
-    const rows = await storage.listProductsWithPrices();
+    let dbRows: Awaited<ReturnType<typeof storage.listProductsWithPrices>> = [];
+    try {
+      dbRows = await storage.listProductsWithPrices();
+    } catch (dbErr) {
+      logger.warn({ error: dbErr }, "DB query for plans failed, falling back to Stripe API");
+    }
 
-    if (rows.length > 0) {
+    if (dbRows.length > 0) {
       const productsMap = new Map<string, ProductWithPrices>();
-      for (const row of rows) {
+      for (const row of dbRows) {
         const productId = row.product_id as string;
         if (!productsMap.has(productId)) {
           productsMap.set(productId, {

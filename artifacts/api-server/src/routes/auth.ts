@@ -68,9 +68,12 @@ async function upsertUser(claims: Record<string, unknown>) {
       | null,
   };
 
-  const adminUsernames = (process.env.ADMIN_USERNAMES || "").split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
+  const adminIdentifiers = (process.env.ADMIN_USERNAMES || "").split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
   const username = ((claims.preferred_username as string) || "").toLowerCase();
-  const shouldBeAdmin = username.length > 0 && adminUsernames.includes(username);
+  const email = ((claims.email as string) || "").toLowerCase();
+  const shouldBeAdmin =
+    (username.length > 0 && adminIdentifiers.includes(username)) ||
+    (email.length > 0 && adminIdentifiers.includes(email));
 
   const [user] = await db
     .insert(usersTable)
