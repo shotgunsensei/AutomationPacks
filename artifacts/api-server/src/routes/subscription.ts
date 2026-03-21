@@ -133,9 +133,13 @@ interface ProductWithPrices {
 const VALID_TIERS = new Set(['starter', 'pro', 'enterprise']);
 
 function getProductTier(metadata: string | Record<string, string> | null): string | null {
-  const parsed = typeof metadata === 'string' ? JSON.parse(metadata) as Record<string, string> : (metadata || {});
-  const tier = parsed.tier;
-  return tier && VALID_TIERS.has(tier) ? tier : null;
+  try {
+    const parsed = typeof metadata === 'string' ? JSON.parse(metadata) as Record<string, string> : (metadata || {});
+    const tier = parsed.tier;
+    return tier && VALID_TIERS.has(tier) ? tier : null;
+  } catch {
+    return null;
+  }
 }
 
 function parsePlan(product: ProductWithPrices) {

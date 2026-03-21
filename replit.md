@@ -57,9 +57,10 @@ artifacts-monorepo/
 - `stripeClient.ts` fetches credentials from Replit connectors API
 - `stripe-replit-sync` manages webhook + data sync to `stripe.*` schema
 - Webhook route registered BEFORE `express.json()` middleware in `app.ts`
-- Products: Starter ($10/mo), Pro ($20/mo), Enterprise ($100/mo) — seeded via `scripts/src/seed-products.ts`
-- `webhookHandlers.ts` uses `amountToTier()` — ≥$100→enterprise, ≥$20→pro, else→starter
-- Tier mapping: amount ≥ 10000 → enterprise, ≥ 2000 → pro, default → starter
+- Products: Starter ($10/mo), Pro ($20/mo), Enterprise ($100/mo) — seeded via `scripts/src/seed-products.ts` with `tier` metadata on each product
+- `webhookHandlers.ts` uses `resolveTier()` — resolves from Stripe product `metadata.tier` (starter/pro/enterprise), falls back to amount-based mapping (≥10000→enterprise, ≥2000→pro, else→starter) if metadata missing
+- `/subscription/plans` endpoint filters to only products with valid `metadata.tier` (starter/pro/enterprise), sorted by price ascending
+- Seed script deactivates legacy products without matching tier metadata before creating new ones
 
 ### GitHub Script Sync
 - `githubSync.ts` syncs scripts from `shotgunsensei/AutomationPacks` on server startup

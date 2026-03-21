@@ -5,6 +5,12 @@ import type Stripe from 'stripe';
 
 const VALID_TIERS = new Set(['starter', 'pro', 'enterprise']);
 
+function amountToTier(amount: number): string {
+  if (amount >= 10000) return 'enterprise';
+  if (amount >= 2000) return 'pro';
+  return 'starter';
+}
+
 async function resolveTier(stripe: Stripe, priceId: string): Promise<string> {
   try {
     const price = await stripe.prices.retrieve(priceId, { expand: ['product'] });
@@ -15,8 +21,11 @@ async function resolveTier(stripe: Stripe, priceId: string): Promise<string> {
         return metaTier;
       }
     }
+    if (price.unit_amount) {
+      return amountToTier(price.unit_amount);
+    }
   } catch (err) {
-    logger.warn({ priceId, error: err }, 'Failed to resolve tier from product metadata, falling back to amount');
+    logger.warn({ priceId, error: err }, 'Failed to resolve tier from Stripe, falling back to starter');
   }
 
   return 'starter';
