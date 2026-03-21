@@ -19,7 +19,7 @@ export default function Account() {
   return (
     <div className="min-h-screen pt-32 pb-24">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold font-display mb-8">Account Settings</h1>
+        <h1 className="text-3xl font-black font-display mb-8">Account Settings</h1>
 
         <div className="grid gap-8">
           <motion.div 
@@ -86,7 +86,7 @@ export default function Account() {
             ) : (
               <div className="text-center py-8">
                 <p className="text-muted-foreground mb-6">You are not currently subscribed to any plan.</p>
-                <a href="/pricing" className="inline-block px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold neon-shadow hover:-translate-y-0.5 transition-all duration-300">
+                <a href="/pricing" className="inline-block px-6 py-3 rounded-xl bg-ninja-red text-white font-bold red-glow hover:-translate-y-0.5 transition-all duration-300">
                   View Plans
                 </a>
               </div>

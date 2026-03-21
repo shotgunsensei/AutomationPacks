@@ -55,14 +55,14 @@ export default function ScriptDetail() {
           className="glass rounded-3xl p-8 mb-8 relative overflow-hidden"
         >
           {script.source === 'ai_generated' && (
-            <div className="absolute top-0 right-0 bg-secondary text-white text-xs font-bold px-4 py-1 rounded-bl-xl shadow-lg">
+            <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-bold px-4 py-1 rounded-bl-xl shadow-lg">
               AI GENERATED
             </div>
           )}
           
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold font-display mb-4">{script.name}</h1>
+              <h1 className="text-3xl md:text-4xl font-black font-display mb-4">{script.name}</h1>
               <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl">
                 {script.description}
               </p>

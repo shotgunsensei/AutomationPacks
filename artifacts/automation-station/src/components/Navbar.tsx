@@ -6,6 +6,10 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/+$/, "");
 
+type NavLinkItem = { kind: "link"; label: string; path: string };
+type NavAnchorItem = { kind: "anchor"; label: string; sectionId: string };
+type NavItem = NavLinkItem | NavAnchorItem;
+
 export function Navbar() {
   const [location] = useLocation();
   const { user, isAuthenticated, login, logout, isLoading } = useAuth();
@@ -26,28 +30,67 @@ export function Navbar() {
   const isHome = location === "/";
 
   const handleSmoothScroll = (sectionId: string) => {
-    if (!isHome) return;
     const el = document.getElementById(sectionId);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
-  const navItems = [
-    { label: "Home", path: "/" },
+  const navItems: NavItem[] = [
+    { kind: "link", label: "Home", path: "/" },
     ...(isHome ? [
-      { label: "Features", path: "/#features", anchor: "features" },
-      { label: "Use Cases", path: "/#use-cases", anchor: "use-cases" },
+      { kind: "anchor" as const, label: "Features", sectionId: "features" },
+      { kind: "anchor" as const, label: "Use Cases", sectionId: "use-cases" },
     ] : []),
-    { label: "Pricing", path: "/pricing" },
+    { kind: "link", label: "Pricing", path: "/pricing" },
     ...(isAuthenticated ? [
-      { label: "Script Library", path: "/library" },
-      { label: "AI Generator", path: "/generate" },
+      { kind: "link" as const, label: "Script Library", path: "/library" },
+      { kind: "link" as const, label: "AI Generator", path: "/generate" },
     ] : []),
     ...(isAdmin ? [
-      { label: "Admin", path: "/admin" },
+      { kind: "link" as const, label: "Admin", path: "/admin" },
     ] : []),
   ];
+
+  function renderNavItem(item: NavItem, isMobile: boolean) {
+    if (item.kind === "anchor") {
+      return (
+        <button
+          key={`anchor-${item.sectionId}`}
+          onClick={() => {
+            handleSmoothScroll(item.sectionId);
+            if (isMobile) setMobileOpen(false);
+          }}
+          className={`${isMobile ? "px-4 py-3 text-left" : "px-4 py-2"} rounded-lg text-sm font-medium transition-colors text-muted-foreground hover:text-foreground hover:bg-white/5`}
+        >
+          {item.label}
+        </button>
+      );
+    }
+
+    return (
+      <Link
+        key={item.path}
+        href={item.path}
+        onClick={isMobile ? () => setMobileOpen(false) : undefined}
+        className={`${isMobile ? "px-4 py-3" : "px-4 py-2"} rounded-lg text-sm font-medium transition-colors relative ${
+          location === item.path
+            ? (isMobile ? "bg-white/5 text-foreground" : "text-foreground")
+            : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+        }`}
+      >
+        {item.label === "Admin" && <Shield className="w-4 h-4 inline-block mr-2 text-yellow-400" />}
+        {item.label === "AI Generator" && <Sparkles className="w-4 h-4 inline-block mr-2 text-primary" />}
+        {item.label}
+        {!isMobile && location === item.path && (
+          <motion.div
+            layoutId="navbar-indicator"
+            className="absolute bottom-0 left-0 right-0 h-0.5 bg-ninja-red"
+          />
+        )}
+      </Link>
+    );
+  }
 
   return (
     <>
@@ -69,41 +112,7 @@ export function Navbar() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => {
-              const isAnchor = "anchor" in item && (item as any).anchor;
-              if (isAnchor) {
-                return (
-                  <button
-                    key={item.path}
-                    onClick={() => handleSmoothScroll((item as any).anchor)}
-                    className="px-4 py-2 rounded-lg text-sm font-medium transition-colors text-muted-foreground hover:text-foreground hover:bg-white/5"
-                  >
-                    {item.label}
-                  </button>
-                );
-              }
-              return (
-                <Link
-                  key={item.path}
-                  href={item.path}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${
-                    location === item.path
-                      ? "text-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-                  }`}
-                >
-                  {item.label === "Admin" && <Shield className="w-4 h-4 inline-block mr-2 text-yellow-400" />}
-                  {item.label === "AI Generator" && <Sparkles className="w-4 h-4 inline-block mr-2 text-primary" />}
-                  {item.label}
-                  {location === item.path && (
-                    <motion.div
-                      layoutId="navbar-indicator"
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-ninja-red"
-                    />
-                  )}
-                </Link>
-              );
-            })}
+            {navItems.map(item => renderNavItem(item, false))}
           </nav>
 
           <div className="flex items-center gap-3">
@@ -156,32 +165,7 @@ export function Navbar() {
             className="fixed inset-x-0 top-20 z-40 glass border-b border-border/50 md:hidden"
           >
             <nav className="flex flex-col p-4 gap-1">
-              {navItems.map((item) => {
-                const isAnchor = "anchor" in item && (item as any).anchor;
-                if (isAnchor) {
-                  return (
-                    <button
-                      key={item.path}
-                      onClick={() => { handleSmoothScroll((item as any).anchor); setMobileOpen(false); }}
-                      className="px-4 py-3 rounded-lg text-sm font-medium transition-colors text-muted-foreground hover:bg-white/5 text-left"
-                    >
-                      {item.label}
-                    </button>
-                  );
-                }
-                return (
-                  <Link
-                    key={item.path}
-                    href={item.path}
-                    onClick={() => setMobileOpen(false)}
-                    className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                      location === item.path ? "bg-white/5 text-foreground" : "text-muted-foreground hover:bg-white/5"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
+              {navItems.map(item => renderNavItem(item, true))}
             </nav>
           </motion.div>
         )}

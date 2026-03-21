@@ -86,7 +86,7 @@ export default function Library() {
         {/* Main Content */}
         <main className="flex-1">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-            <h1 className="text-3xl font-bold font-display">Script Library</h1>
+            <h1 className="text-3xl font-black font-display">Script Library</h1>
             
             <div className="relative w-full sm:w-72">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -126,7 +126,7 @@ export default function Library() {
                           {getFormatIcon(script.format)}
                         </div>
                         {script.source === 'ai_generated' && (
-                          <span className="px-2 py-1 text-[10px] uppercase tracking-wider font-bold bg-secondary/20 text-secondary rounded-full border border-secondary/20">
+                          <span className="px-2 py-1 text-[10px] uppercase tracking-wider font-bold bg-primary/20 text-primary rounded-full border border-primary/20">
                             AI Generated
                           </span>
                         )}
