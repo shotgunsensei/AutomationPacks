@@ -72,16 +72,12 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-async function main() {
-  await initStripe();
+app.listen(port, () => {
+  logger.info({ port }, "Server listening");
 
-  app.listen(port, () => {
-    logger.info({ port }, "Server listening");
-    initGithubSync();
+  initStripe().catch((err) => {
+    logger.error({ error: err }, "Failed to initialize Stripe");
   });
-}
 
-main().catch((err) => {
-  logger.error({ error: err }, "Failed to start server");
-  process.exit(1);
+  initGithubSync();
 });
