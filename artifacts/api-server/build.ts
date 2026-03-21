@@ -1,7 +1,7 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import { build as esbuild } from "esbuild";
-import { rm, readFile } from "fs/promises";
+import { rm, readFile, writeFile } from "fs/promises";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -60,8 +60,14 @@ async function buildAll() {
     entryPoints: [path.resolve(__dirname, "src/index.ts")],
     platform: "node",
     bundle: true,
-    format: "cjs",
-    outfile: path.resolve(distDir, "index.cjs"),
+    format: "esm",
+    outfile: path.resolve(distDir, "index.mjs"),
+    banner: {
+      js: [
+        'import { createRequire as __createRequire } from "module";',
+        'const require = __createRequire(import.meta.url);',
+      ].join("\n"),
+    },
     define: {
       "process.env.NODE_ENV": '"production"',
     },
@@ -69,6 +75,11 @@ async function buildAll() {
     external: externals,
     logLevel: "info",
   });
+
+  await writeFile(
+    path.resolve(distDir, "index.cjs"),
+    'import("./index.mjs");\n'
+  );
 }
 
 buildAll().catch((err) => {
