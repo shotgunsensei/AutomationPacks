@@ -1,0 +1,88 @@
+🥷 NINJAMATION — LANDING PAGE (Conversion-First)
+🧠 Positioning (This is your anchor)
+Ninjamation
+AI Automation Platform for Operators, Builders, and MSPs
+⚡ HERO SECTION (Above the fold)
+Headline:
+Automate Everything. Control Anything.
+Subheadline:
+Ninjamation is your AI-powered command center for building, deploying, and scaling automation workflows across your business, clients, and systems.
+CTA Buttons:
+🔴 Launch Your First Automation
+⚙️ View Live Demo
+Visual:
+Your ninja logo left
+Right side: flowing node graph animation (Zapier meets Iron Man HUD)
+🧩 SECTION 2 — WHAT IT ACTUALLY DOES
+Headline:
+Stop Doing Work. Start Orchestrating It.
+3 Core Blocks:
+🧠 AI Agents
+Build intelligent workflows that think and act
+Auto-handle tickets, alerts, onboarding, responses
+🔗 Integrations
+Connect APIs, RMM tools, Slack, email, scripts
+Replace manual glue work
+⚡ Execution Engine
+Trigger-based, scheduled, or event-driven
+Runs silently in the background
+💰 SECTION 3 — WHY IT MATTERS (Sell the outcome)
+Headline:
+This Isn’t Automation… It’s Leverage.
+Bullet hits:
+Replace hours of daily work with seconds
+Scale without hiring
+Standardize operations across clients
+Turn processes into products
+🧪 SECTION 4 — REAL USE CASES (This is where you win)
+🖥️ MSP Automation
+Auto-resolve tickets
+Alert → diagnose → fix → close loop
+📦 Business Ops
+Lead intake → CRM → follow-up → reporting
+🔐 Security
+Alert → isolate → notify → document
+🤖 AI Workflows
+Prompt → analyze → decision → action
+🧰 SECTION 5 — PRODUCT STACK (Set up future monetization)
+Headline:
+Build Once. Deploy Everywhere.
+Modules:
+Ninjamation Core
+Workflow engine
+Ninjamation Agents
+AI-driven decision logic
+Ninjamation Packs
+Prebuilt automation bundles (💰 sell these)
+Ninjamation Vault (future)
+Marketplace for workflows
+🚀 SECTION 6 — PRICING (Simple, scalable)
+Starter (Free / $9)
+Basic workflows
+Limited executions
+Pro ($29–$49)
+Unlimited workflows
+AI agents
+Integrations
+MSP / Operator ($99+)
+Multi-tenant
+Automation packs
+White-label potential
+🧲 SECTION 7 — FINAL CTA
+Headline:
+Your Systems Should Work For You.
+Buttons:
+🔴 Start Automating Now
+🧪 Try Demo Environment
+🧠 DESIGN DIRECTION (Important)
+Color Palette:
+Black / Deep Blue background
+Electric Blue accents
+Red highlights (your ninja identity)
+Font Style:
+Bold, modern, slightly condensed
+Think: tech + authority (not playful startup fluff)
+Effects:
+Subtle glow
+Motion lines / circuit patterns
+Glass UI panels
