@@ -6,14 +6,10 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="col-span-1 md:col-span-2">
-            <Link href="/" className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-ninja-red via-red-600 to-red-800 p-0.5">
-                <div className="w-full h-full bg-background rounded-[6px] flex items-center justify-center">
-                  <span className="text-sm font-black font-display text-ninja-red">N</span>
-                </div>
-              </div>
+            <Link href="/" className="flex items-center gap-2 mb-4">
+              <img src="/images/ninja-head.png" alt="Ninjamation" className="w-8 h-8 object-contain" />
               <span className="font-display font-bold text-xl tracking-tight">
-                Ninja<span className="text-ninja-red">mation</span>
+                <span className="text-white">NINJA</span><span className="text-primary">MATION</span>
               </span>
             </Link>
             <p className="text-muted-foreground max-w-sm">

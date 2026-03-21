@@ -23,11 +23,11 @@ function Section({ children, className = "", id }: { children: React.ReactNode; 
 function NinjaLogo({ className = "w-20 h-20" }: { className?: string }) {
   return (
     <div className={`${className} relative`}>
-      <div className="w-full h-full rounded-2xl bg-gradient-to-br from-ninja-red via-red-600 to-red-800 p-1 shadow-2xl red-glow">
-        <div className="w-full h-full bg-background rounded-[14px] flex items-center justify-center">
-          <span className="text-4xl font-black font-display text-ninja-red select-none">N</span>
-        </div>
-      </div>
+      <img
+        src="/images/ninja-head.png"
+        alt="Ninjamation"
+        className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(220,38,38,0.3)]"
+      />
     </div>
   );
 }

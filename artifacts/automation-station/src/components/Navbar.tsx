@@ -100,14 +100,14 @@ export function Navbar() {
         className="fixed top-0 inset-x-0 z-50 glass border-b border-border/50"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-ninja-red via-red-600 to-red-800 p-0.5 shadow-lg shadow-red-500/20 group-hover:shadow-red-500/40 transition-all duration-300">
-              <div className="w-full h-full bg-background rounded-[10px] flex items-center justify-center">
-                <span className="text-lg font-black font-display text-ninja-red select-none">N</span>
-              </div>
-            </div>
+          <Link href="/" className="flex items-center gap-2 group">
+            <img
+              src="/images/ninja-head.png"
+              alt="Ninjamation"
+              className="w-10 h-10 object-contain drop-shadow-lg group-hover:drop-shadow-[0_0_8px_rgba(220,38,38,0.4)] transition-all duration-300"
+            />
             <span className="font-display font-bold text-xl tracking-tight hidden sm:block">
-              Ninja<span className="text-ninja-red">mation</span>
+              <span className="text-white">NINJA</span><span className="text-primary">MATION</span>
             </span>
           </Link>
 
