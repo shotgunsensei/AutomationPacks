@@ -22,8 +22,8 @@ async function requireProSubscription(req: Request, res: Response, next: NextFun
       return;
     }
 
-    if (user.subscriptionTier !== "pro" || !user.stripeSubscriptionId) {
-      res.status(403).json({ error: "Pro subscription required" });
+    if ((user.subscriptionTier !== "pro" && user.subscriptionTier !== "enterprise") || !user.stripeSubscriptionId) {
+      res.status(403).json({ error: "Pro or Enterprise subscription required" });
       return;
     }
 

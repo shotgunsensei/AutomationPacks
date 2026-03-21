@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 @theme inline {
@@ -25,6 +25,7 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
+  --color-ninja-red: hsl(var(--ninja-red));
 
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
@@ -36,36 +37,35 @@
 }
 
 :root {
-  /* Dark Mode Professional - Tech/Automation Theme */
-  --background: 222 47% 7%;
+  --background: 225 50% 4%;
   --foreground: 210 40% 98%;
 
-  --card: 222 47% 11%;
+  --card: 225 45% 8%;
   --card-foreground: 210 40% 98%;
 
-  --popover: 222 47% 11%;
+  --popover: 225 45% 8%;
   --popover-foreground: 210 40% 98%;
 
-  /* Vibrant Cyan for tech feel */
-  --primary: 191 100% 50%;
-  --primary-foreground: 222 47% 11%;
+  --primary: 210 100% 56%;
+  --primary-foreground: 225 50% 4%;
 
-  /* Deep purple accent */
-  --secondary: 262 83% 58%;
+  --secondary: 210 100% 44%;
   --secondary-foreground: 210 40% 98%;
 
-  --muted: 217 33% 17%;
-  --muted-foreground: 215 20% 65%;
+  --muted: 220 30% 14%;
+  --muted-foreground: 215 20% 55%;
 
-  --accent: 191 100% 50%;
-  --accent-foreground: 222 47% 11%;
+  --accent: 210 100% 56%;
+  --accent-foreground: 225 50% 4%;
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 210 40% 98%;
 
-  --border: 217 33% 17%;
-  --input: 217 33% 17%;
-  --ring: 191 100% 50%;
+  --border: 220 25% 14%;
+  --input: 220 25% 14%;
+  --ring: 210 100% 56%;
+
+  --ninja-red: 0 85% 55%;
 
   --radius: 0.75rem;
 }
@@ -83,7 +83,6 @@
   }
 }
 
-/* Glassmorphism utilities */
 @layer utilities {
   .glass {
     @apply bg-card/60 backdrop-blur-xl border border-white/5 shadow-xl;
@@ -97,7 +96,28 @@
   .neon-shadow-hover:hover {
     box-shadow: 0 0 30px -5px hsl(var(--primary) / 0.7);
   }
+  .red-glow {
+    box-shadow: 0 0 25px -5px hsl(var(--ninja-red) / 0.5);
+  }
+  .red-glow-hover:hover {
+    box-shadow: 0 0 40px -5px hsl(var(--ninja-red) / 0.7);
+  }
   .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-ninja-red;
+  }
+  .text-gradient-blue {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
+  }
+  .circuit-pattern {
+    background-image:
+      radial-gradient(circle at 25% 25%, hsl(var(--primary) / 0.03) 1px, transparent 1px),
+      radial-gradient(circle at 75% 75%, hsl(var(--primary) / 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .grid-pattern {
+    background-image:
+      linear-gradient(hsl(var(--primary) / 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--primary) / 0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
   }
 }

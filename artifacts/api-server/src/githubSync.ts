@@ -56,7 +56,7 @@ async function fetchRepoContents(path: string = ''): Promise<GitHubFile[]> {
   const response = await fetch(url, {
     headers: {
       'Accept': 'application/vnd.github.v3+json',
-      'User-Agent': 'AutomationStation',
+      'User-Agent': 'Ninjamation',
     },
   });
 

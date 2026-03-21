@@ -14,7 +14,7 @@ export default function GenerateAI() {
   const { data: subStatus } = useGetSubscriptionStatus();
   const generateMutation = useGenerateScript();
 
-  const isPro = subStatus?.tier === "pro";
+  const isPro = subStatus?.tier === "pro" || subStatus?.tier === "enterprise";
   const isGenerating = generateMutation.isPending;
 
   const handleGenerate = async (e: React.FormEvent) => {
@@ -81,9 +81,9 @@ export default function GenerateAI() {
             </p>
             <a
               href="/pricing"
-              className="inline-flex px-8 py-4 rounded-xl bg-secondary text-white font-semibold hover:bg-secondary/90 transition-colors w-full justify-center shadow-lg shadow-secondary/25"
+              className="inline-flex px-8 py-4 rounded-xl bg-ninja-red text-white font-bold hover:bg-red-600 transition-colors w-full justify-center shadow-lg red-glow"
             >
-              Upgrade to Pro for $10/mo
+              Upgrade to Pro for $20/mo
             </a>
           </motion.div>
         </div>
@@ -93,7 +93,7 @@ export default function GenerateAI() {
         className={`max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 ${!isPro ? "pointer-events-none opacity-50 filter blur-[2px]" : ""}`}
       >
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-secondary/10 text-secondary mb-6 border border-secondary/20 shadow-[0_0_30px_rgba(139,92,246,0.3)]">
+          <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-primary/10 text-primary mb-6 border border-primary/20 shadow-[0_0_30px_rgba(59,130,246,0.3)]">
             <Sparkles className="w-8 h-8" />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold font-display mb-4">AI Script Generator</h1>
@@ -113,7 +113,7 @@ export default function GenerateAI() {
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/20 text-secondary">
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary">
                         AI Generated
                       </span>
                       <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/5 text-muted-foreground">
@@ -149,7 +149,7 @@ export default function GenerateAI() {
                 <div className="flex flex-col sm:flex-row gap-3 mt-6">
                   <button
                     onClick={handleNewScript}
-                    className="flex-1 px-6 py-3 rounded-xl bg-secondary hover:bg-secondary/90 text-white font-bold transition-colors flex items-center justify-center gap-2"
+                    className="flex-1 px-6 py-3 rounded-xl bg-ninja-red hover:bg-red-600 text-white font-bold transition-colors flex items-center justify-center gap-2"
                   >
                     <Sparkles className="w-4 h-4" /> Generate Another
                   </button>
@@ -190,7 +190,7 @@ export default function GenerateAI() {
                         onClick={() => setFormat(f.id)}
                         className={`p-4 rounded-xl border flex flex-col items-center gap-3 transition-all ${
                           format === f.id
-                            ? "border-secondary bg-secondary/10 text-secondary"
+                            ? "border-primary bg-primary/10 text-primary"
                             : "border-white/10 bg-white/5 hover:bg-white/10 text-muted-foreground"
                         }`}
                       >
@@ -235,7 +235,7 @@ export default function GenerateAI() {
                   <button
                     type="submit"
                     disabled={isGenerating || !prompt || prompt.trim().length < 10}
-                    className="px-8 py-4 rounded-xl bg-secondary hover:bg-secondary/90 text-white font-bold transition-all shadow-lg shadow-secondary/25 hover:shadow-secondary/40 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-8 py-4 rounded-xl bg-ninja-red hover:bg-red-600 text-white font-bold transition-all shadow-lg red-glow flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isGenerating ? (
                       <>

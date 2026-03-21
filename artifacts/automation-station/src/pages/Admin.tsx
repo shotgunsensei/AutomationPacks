@@ -168,7 +168,7 @@ function UsersTab() {
                   <td className="py-3 pr-4 font-medium">{u.firstName || ''} {u.lastName || ''}</td>
                   <td className="py-3 pr-4 text-muted-foreground">{u.email || '—'}</td>
                   <td className="py-3 pr-4">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.subscriptionTier === 'pro' ? 'bg-secondary/20 text-secondary' : u.subscriptionTier === 'basic' ? 'bg-primary/20 text-primary' : 'bg-white/5 text-muted-foreground'}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.subscriptionTier === 'enterprise' ? 'bg-ninja-red/20 text-ninja-red' : u.subscriptionTier === 'pro' ? 'bg-primary/20 text-primary' : u.subscriptionTier === 'starter' ? 'bg-green-500/20 text-green-400' : 'bg-white/5 text-muted-foreground'}`}>
                       {u.subscriptionTier || 'none'}
                     </span>
                   </td>
@@ -232,8 +232,9 @@ function UsersTab() {
                   <label className="text-xs text-muted-foreground mb-1 block">Subscription Tier</label>
                   <select value={editingUser.subscriptionTier || ""} onChange={e => setEditingUser({ ...editingUser, subscriptionTier: e.target.value || null })} className="w-full px-3 py-2 bg-background border border-white/10 rounded-lg text-sm">
                     <option value="">None</option>
-                    <option value="basic">Basic</option>
+                    <option value="starter">Starter</option>
                     <option value="pro">Pro</option>
+                    <option value="enterprise">Enterprise</option>
                   </select>
                 </div>
                 <label className="flex items-center gap-3 cursor-pointer">

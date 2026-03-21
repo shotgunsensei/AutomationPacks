@@ -4,7 +4,7 @@
 
 pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
 
-**Automation Station** — A subscription-based web app for PC automation scripts. Users sign in via Replit Auth, subscribe via Stripe ($5/mo Basic for browsing/downloading, $10/mo Pro for AI script generation), and access scripts synced from GitHub.
+**Ninjamation** — A subscription-based web app for PC automation scripts (rebranded from "Automation Station"). Users sign in via Replit Auth, subscribe via Stripe (Starter $10/mo, Pro $20/mo for AI script generation, Enterprise $100/mo), and access scripts synced from GitHub. Design theme: deep blue/black backgrounds, electric blue primary, ninja-red accents, glass UI, glow effects, bold condensed fonts (Outfit), Framer Motion animations.
 
 ## Stack
 
@@ -19,7 +19,7 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Payments**: Stripe via Replit integration + `stripe-replit-sync`
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
-- **Build**: esbuild (CJS bundle)
+- **Build**: esbuild (ESM bundle → `dist/index.mjs` + CJS shim `dist/index.cjs`)
 
 ## Structure
 
@@ -37,7 +37,7 @@ artifacts-monorepo/
 ├── scripts/                # Utility scripts
 │   └── src/
 │       ├── hello.ts
-│       └── seed-products.ts  # Seeds Stripe products (Basic $5, Pro $10)
+│       └── seed-products.ts  # Seeds Stripe products (Starter $10, Pro $20, Enterprise $100)
 ├── pnpm-workspace.yaml
 ├── tsconfig.base.json
 ├── tsconfig.json
@@ -57,8 +57,9 @@ artifacts-monorepo/
 - `stripeClient.ts` fetches credentials from Replit connectors API
 - `stripe-replit-sync` manages webhook + data sync to `stripe.*` schema
 - Webhook route registered BEFORE `express.json()` middleware in `app.ts`
-- Products: Basic Plan ($5/mo), Pro Plan ($10/mo) — seeded via `scripts/src/seed-products.ts`
-- `webhookHandlers.ts` processes `checkout.session.completed` to update user subscription tier
+- Products: Starter ($10/mo), Pro ($20/mo), Enterprise ($100/mo) — seeded via `scripts/src/seed-products.ts`
+- `webhookHandlers.ts` uses `amountToTier()` — ≥$100→enterprise, ≥$20→pro, else→starter
+- Tier mapping: amount ≥ 10000 → enterprise, ≥ 2000 → pro, default → starter
 
 ### GitHub Script Sync
 - `githubSync.ts` syncs scripts from `shotgunsensei/AutomationPacks` on server startup
@@ -66,29 +67,28 @@ artifacts-monorepo/
 - Scripts stored in `scripts` table with name, description, content, format, category, source
 
 ### Frontend Routes
-- `/` — Home (public)
-- `/pricing` — Subscription plans (public)
+- `/` — Home (public, 7-section landing page)
+- `/pricing` — 3-tier subscription plans (public)
 - `/library` — Script browsing/download (requires auth + subscription)
 - `/scripts/:id` — Script detail/download (requires auth + subscription)
-- `/generate` — AI script generator (requires auth + Pro subscription)
+- `/generate` — AI script generator (requires auth + Pro or Enterprise subscription)
 - `/account` — Profile + billing management (requires auth)
 - `/checkout/success`, `/checkout/cancel` — Stripe checkout redirects
 - `/admin` — Admin dashboard (requires auth + isAdmin flag)
 
 ### AI Script Generation
-- Pro-only feature at `/generate` — uses OpenAI (gpt-5.2) to generate automation scripts
-- Backend: `POST /api/scripts/generate` in `generate.ts` — gated by `requireProSubscription` middleware
+- Pro/Enterprise-only feature at `/generate` — uses OpenAI (gpt-5.2)
+- Backend: `POST /api/scripts/generate` in `generate.ts` — gated by `requireProSubscription` middleware (allows pro + enterprise)
 - Accepts `prompt` (string, min 10 chars, max 2000) and `format` (powershell/python/batch/bash)
-- Generated scripts are auto-saved to `scripts` table with `source: "ai_generated"` and `category: "ai-generated"`
-- Scripts appear in the shared library for all subscribers to browse
-- Uses `@workspace/integrations-openai-ai-server` — no API key needed (Replit AI Integrations, billed to credits)
+- Generated scripts auto-saved to `scripts` table with `source: "ai_generated"`
+- Uses `@workspace/integrations-openai-ai-server` — billed to Replit credits
 
 ### Admin Panel
 - Admin dashboard at `/admin` — manages users, subscriptions, and scripts
 - Admin access controlled by `isAdmin` boolean column on `users` table
-- Auto-admin detection via `ADMIN_USERNAMES` env var (comma-separated Replit usernames)
-- Backend: `src/routes/admin.ts` — all routes guarded by `requireAdmin` middleware (DB-based check)
-- Features: stats overview, user list/search/edit/delete, script list/search/edit/delete, manual GitHub sync trigger
+- Auto-admin detection via `ADMIN_USERNAMES` env var (comma-separated Replit usernames; `johntwms355` is master admin)
+- Backend: `src/routes/admin.ts` — all routes guarded by `requireAdmin` middleware
+- Tier dropdown in user edit modal: None / Starter / Pro / Enterprise
 
 ### Database Schema
 - `users` — id, email, firstName, lastName, profileImageUrl, stripeCustomerId, stripeSubscriptionId, subscriptionTier, isAdmin
@@ -123,11 +123,12 @@ Express 5 API server with auth, Stripe payments, GitHub sync, and script managem
 
 ### `artifacts/automation-station` (`@workspace/automation-station`)
 
-React+Vite frontend with dark theme, glassmorphism design, neon accents.
+React+Vite frontend with Ninjamation branding — deep blue/black backgrounds, electric blue accents, ninja-red highlights, glass UI.
 
 - Uses `@workspace/replit-auth-web` for auth, `@workspace/api-client-react` for API hooks
 - Protected routes via `ProtectedRoute` component (supports `requireSubscription` and `requirePro`)
 - Styling: Tailwind CSS + custom glass effects + Framer Motion animations
+- Fonts: Outfit (display), Inter (body), Fira Code (mono)
 
 ### `lib/db` (`@workspace/db`)
 
@@ -144,4 +145,4 @@ React hook for Replit Auth (OIDC). Provides `useAuth()` with `user`, `isAuthenti
 ### `scripts` (`@workspace/scripts`)
 
 Utility scripts. Run via `pnpm --filter @workspace/scripts run <script>`.
-- `seed-products` — Creates Basic/Pro Stripe products and prices
+- `seed-products` — Creates Starter/Pro/Enterprise Stripe products and prices

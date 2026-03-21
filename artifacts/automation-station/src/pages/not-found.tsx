@@ -10,7 +10,7 @@ export default function NotFound() {
         animate={{ opacity: 1, y: 0 }}
         className="text-center max-w-md"
       >
-        <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-6 opacity-80" />
+        <AlertCircle className="w-16 h-16 text-ninja-red mx-auto mb-6 opacity-80" />
         <h1 className="text-4xl font-bold font-display mb-4">404 - Page Not Found</h1>
         <p className="text-muted-foreground mb-8">
           The script or page you are looking for doesn't exist or has been moved.

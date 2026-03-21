@@ -18,7 +18,7 @@ export default function CheckoutCancel() {
           Your checkout process was cancelled. You have not been charged.
         </p>
         <div className="space-y-3">
-          <Link href="/pricing" className="block w-full py-4 rounded-xl bg-primary text-primary-foreground font-semibold neon-shadow hover:-translate-y-0.5 transition-all">
+          <Link href="/pricing" className="block w-full py-4 rounded-xl bg-ninja-red text-white font-bold red-glow hover:-translate-y-0.5 transition-all">
             Return to Pricing
           </Link>
           <Link href="/" className="block w-full py-4 rounded-xl bg-white/5 hover:bg-white/10 font-medium transition-colors">

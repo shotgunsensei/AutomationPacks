@@ -3,6 +3,12 @@ import { storage } from './storage';
 import { logger } from './lib/logger';
 import type Stripe from 'stripe';
 
+function amountToTier(amount: number): string {
+  if (amount >= 10000) return 'enterprise';
+  if (amount >= 2000) return 'pro';
+  return 'starter';
+}
+
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
   if (session.mode !== 'subscription' || !session.subscription || !session.customer) {
     return;
@@ -19,14 +25,8 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
 
   const stripe = await getUncachableStripeClient();
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-
-  const priceId = subscription.items.data[0]?.price?.id;
-  let tier = 'basic';
-  if (priceId) {
-    const price = subscription.items.data[0].price;
-    const amount = price.unit_amount || 0;
-    tier = amount >= 1000 ? 'pro' : 'basic';
-  }
+  const amount = subscription.items.data[0]?.price?.unit_amount || 0;
+  const tier = amountToTier(amount);
 
   await storage.updateUserStripeInfo(user.id, {
     stripeSubscriptionId: subscriptionId,
@@ -44,9 +44,8 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const isActive = subscription.status === 'active' || subscription.status === 'trialing';
 
   if (isActive) {
-    const priceId = subscription.items.data[0]?.price?.id;
     const amount = subscription.items.data[0]?.price?.unit_amount || 0;
-    const tier = amount >= 1000 ? 'pro' : 'basic';
+    const tier = amountToTier(amount);
 
     await storage.updateUserStripeInfo(user.id, {
       stripeSubscriptionId: subscription.id,

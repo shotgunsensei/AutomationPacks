@@ -38,7 +38,7 @@ router.get("/subscription/status", async (req, res) => {
 
     const data = GetSubscriptionStatusResponse.parse({
       hasSubscription: isActive,
-      tier: isActive ? (user.subscriptionTier || 'basic') : null,
+      tier: isActive ? (user.subscriptionTier || 'starter') : null,
       status: subscription?.status || null,
       currentPeriodEnd: subscription?.current_period_end ? new Date(Number(subscription.current_period_end) * 1000).toISOString() : null,
       stripeCustomerId: user.stripeCustomerId || null,

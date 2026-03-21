@@ -15,9 +15,9 @@ export default function CheckoutSuccess() {
         </div>
         <h1 className="text-3xl font-bold font-display mb-4">Payment Successful!</h1>
         <p className="text-muted-foreground mb-8">
-          Thank you for subscribing to Automation Station. Your account has been upgraded and you now have full access.
+          Thank you for subscribing to Ninjamation. Your account has been upgraded and you now have full access.
         </p>
-        <Link href="/library" className="block w-full py-4 rounded-xl bg-primary text-primary-foreground font-semibold neon-shadow hover:-translate-y-0.5 transition-all">
+        <Link href="/library" className="block w-full py-4 rounded-xl bg-ninja-red text-white font-bold red-glow hover:-translate-y-0.5 transition-all">
           Go to Library
         </Link>
       </motion.div>

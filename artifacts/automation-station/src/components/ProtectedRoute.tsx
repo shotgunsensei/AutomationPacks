@@ -34,17 +34,17 @@ export function ProtectedRoute({ children, requireSubscription = false, requireP
   if (!isAuthenticated) return null;
   if (requireSubscription && !subStatus?.hasSubscription) return null;
   
-  if (requirePro && subStatus?.tier !== 'pro') {
+  if (requirePro && subStatus?.tier !== 'pro' && subStatus?.tier !== 'enterprise') {
     return (
       <div className="min-h-[60vh] flex items-center justify-center p-4">
-        <div className="glass p-8 rounded-2xl max-w-md text-center border-secondary/20 relative overflow-hidden">
-          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-primary to-secondary"></div>
+        <div className="glass p-8 rounded-2xl max-w-md text-center border-ninja-red/20 relative overflow-hidden">
+          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-primary to-ninja-red"></div>
           <h2 className="text-2xl font-bold mb-4 font-display">Pro Plan Required</h2>
           <p className="text-muted-foreground mb-8">
-            This feature requires the Pro ($10/mo) tier. Upgrade your account to unlock AI script generation.
+            This feature requires a Pro ($20/mo) or Enterprise plan. Upgrade to unlock AI script generation.
           </p>
-          <button onClick={() => setLocation("/account")} className="px-6 py-3 rounded-xl bg-secondary text-white font-semibold hover:bg-secondary/90 transition-colors w-full">
-            Upgrade to Pro
+          <button onClick={() => setLocation("/pricing")} className="px-6 py-3 rounded-xl bg-ninja-red text-white font-bold hover:bg-red-600 transition-colors w-full red-glow">
+            Upgrade Now
           </button>
         </div>
       </div>
