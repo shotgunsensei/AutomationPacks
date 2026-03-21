@@ -3,7 +3,21 @@ import { getUncachableStripeClient } from './stripeClient';
 async function createProducts() {
   try {
     const stripe = await getUncachableStripeClient();
-    console.log('Creating Ninjamation subscription products in Stripe...');
+    console.log('Migrating to Ninjamation subscription products in Stripe...');
+
+    const legacyNames = ['Basic Plan', 'Pro Plan'];
+    for (const name of legacyNames) {
+      const existing = await stripe.products.search({
+        query: `name:'${name}' AND active:'true'`
+      });
+      for (const product of existing.data) {
+        const tier = product.metadata?.tier;
+        if (tier === 'basic' || (tier === 'pro' && (await getMonthlyAmount(stripe, product.id)) !== 2000)) {
+          await stripe.products.update(product.id, { active: false });
+          console.log(`Deactivated legacy product: ${product.name} (${product.id})`);
+        }
+      }
+    }
 
     const tiers = [
       {
@@ -31,12 +45,15 @@ async function createProducts() {
 
     for (const t of tiers) {
       const existing = await stripe.products.search({
-        query: `name:'${t.name}' AND active:'true'`
+        query: `name:'${t.name}' AND active:'true' AND metadata['tier']:'${t.tier}'`
       });
 
       if (existing.data.length > 0) {
-        console.log(`${t.name} already exists. Skipping.`);
-        continue;
+        const amount = await getMonthlyAmount(stripe, existing.data[0].id);
+        if (amount === t.amount) {
+          console.log(`${t.name} (tier=${t.tier}, $${t.amount / 100}/mo) already exists. Skipping.`);
+          continue;
+        }
       }
 
       const product = await stripe.products.create({
@@ -60,6 +77,12 @@ async function createProducts() {
     console.error('Error creating products:', error.message);
     process.exit(1);
   }
+}
+
+async function getMonthlyAmount(stripe: any, productId: string): Promise<number | null> {
+  const prices = await stripe.prices.list({ product: productId, active: true, limit: 10 });
+  const monthly = prices.data.find((p: any) => p.recurring?.interval === 'month');
+  return monthly?.unit_amount ?? null;
 }
 
 createProducts();

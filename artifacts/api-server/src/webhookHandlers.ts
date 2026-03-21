@@ -3,9 +3,22 @@ import { storage } from './storage';
 import { logger } from './lib/logger';
 import type Stripe from 'stripe';
 
-function amountToTier(amount: number): string {
-  if (amount >= 10000) return 'enterprise';
-  if (amount >= 2000) return 'pro';
+const VALID_TIERS = new Set(['starter', 'pro', 'enterprise']);
+
+async function resolveTier(stripe: Stripe, priceId: string): Promise<string> {
+  try {
+    const price = await stripe.prices.retrieve(priceId, { expand: ['product'] });
+    const product = price.product;
+    if (typeof product === 'object' && product !== null && 'metadata' in product) {
+      const metaTier = (product as Stripe.Product).metadata?.tier;
+      if (metaTier && VALID_TIERS.has(metaTier)) {
+        return metaTier;
+      }
+    }
+  } catch (err) {
+    logger.warn({ priceId, error: err }, 'Failed to resolve tier from product metadata, falling back to amount');
+  }
+
   return 'starter';
 }
 
@@ -25,8 +38,8 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
 
   const stripe = await getUncachableStripeClient();
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-  const amount = subscription.items.data[0]?.price?.unit_amount || 0;
-  const tier = amountToTier(amount);
+  const priceId = subscription.items.data[0]?.price?.id;
+  const tier = priceId ? await resolveTier(stripe, priceId) : 'starter';
 
   await storage.updateUserStripeInfo(user.id, {
     stripeSubscriptionId: subscriptionId,
@@ -44,8 +57,9 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const isActive = subscription.status === 'active' || subscription.status === 'trialing';
 
   if (isActive) {
-    const amount = subscription.items.data[0]?.price?.unit_amount || 0;
-    const tier = amountToTier(amount);
+    const stripe = await getUncachableStripeClient();
+    const priceId = subscription.items.data[0]?.price?.id;
+    const tier = priceId ? await resolveTier(stripe, priceId) : 'starter';
 
     await storage.updateUserStripeInfo(user.id, {
       stripeSubscriptionId: subscription.id,

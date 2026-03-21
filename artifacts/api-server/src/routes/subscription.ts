@@ -130,6 +130,14 @@ interface ProductWithPrices {
   prices: ProductPrice[];
 }
 
+const VALID_TIERS = new Set(['starter', 'pro', 'enterprise']);
+
+function getProductTier(metadata: string | Record<string, string> | null): string | null {
+  const parsed = typeof metadata === 'string' ? JSON.parse(metadata) as Record<string, string> : (metadata || {});
+  const tier = parsed.tier;
+  return tier && VALID_TIERS.has(tier) ? tier : null;
+}
+
 function parsePlan(product: ProductWithPrices) {
   const monthlyPrice = product.prices.find((pr) => {
     const recurring = typeof pr.recurring === 'string' ? JSON.parse(pr.recurring) : pr.recurring;
@@ -179,7 +187,10 @@ router.get("/subscription/plans", async (_req, res) => {
         }
       }
 
-      const plans = Array.from(productsMap.values()).map(parsePlan);
+      const plans = Array.from(productsMap.values())
+        .filter(p => getProductTier(p.metadata) !== null)
+        .map(parsePlan)
+        .sort((a, b) => a.amount - b.amount);
       const data = GetSubscriptionPlansResponse.parse({ plans });
       res.json(data);
       return;
@@ -190,24 +201,30 @@ router.get("/subscription/plans", async (_req, res) => {
     const products = await stripe.products.list({ active: true, limit: 10 });
     const prices = await stripe.prices.list({ active: true, limit: 20 });
 
-    const plans = products.data.map((product) => {
-      const productPrices = prices.data.filter(
-        (p) => (typeof p.product === 'string' ? p.product : p.product) === product.id && p.recurring?.interval === 'month'
-      );
-      const monthlyPrice = productPrices[0];
-      const metadata = product.metadata || {};
-      const features = metadata.features ? metadata.features.split(',').map((f: string) => f.trim()) : [];
+    const plans = products.data
+      .filter(product => {
+        const tier = product.metadata?.tier;
+        return tier && VALID_TIERS.has(tier);
+      })
+      .map((product) => {
+        const productPrices = prices.data.filter(
+          (p) => (typeof p.product === 'string' ? p.product : p.product) === product.id && p.recurring?.interval === 'month'
+        );
+        const monthlyPrice = productPrices[0];
+        const metadata = product.metadata || {};
+        const features = metadata.features ? metadata.features.split(',').map((f: string) => f.trim()) : [];
 
-      return {
-        id: product.id,
-        name: product.name,
-        description: product.description || '',
-        priceId: monthlyPrice?.id || '',
-        amount: monthlyPrice?.unit_amount || 0,
-        interval: 'month',
-        features,
-      };
-    });
+        return {
+          id: product.id,
+          name: product.name,
+          description: product.description || '',
+          priceId: monthlyPrice?.id || '',
+          amount: monthlyPrice?.unit_amount || 0,
+          interval: 'month',
+          features,
+        };
+      })
+      .sort((a, b) => a.amount - b.amount);
 
     const data = GetSubscriptionPlansResponse.parse({ plans });
     res.json(data);
