@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@workspace/replit-auth-web";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Users, FileCode, BarChart3, Loader2, Search, Trash2, Save, Plus, RefreshCw, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Shield, Users, FileCode, BarChart3, Loader2, Search, Trash2, Save, Plus, RefreshCw, ChevronLeft, ChevronRight, X, Pencil, Crown } from "lucide-react";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/+$/, "");
 
@@ -176,8 +176,8 @@ function UsersTab() {
                   <td className="py-3 pr-4 text-muted-foreground">{new Date(u.createdAt).toLocaleDateString()}</td>
                   <td className="py-3">
                     <div className="flex gap-2">
-                      <button onClick={() => setEditingUser({ ...u })} className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-foreground"><Save className="w-4 h-4" /></button>
-                      <button onClick={() => handleDeleteUser(u.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 className="w-4 h-4" /></button>
+                      <button onClick={() => setEditingUser({ ...u })} title="Edit user" className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-foreground"><Pencil className="w-4 h-4" /></button>
+                      <button onClick={() => handleDeleteUser(u.id)} title="Delete user" className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </td>
                 </tr>
@@ -216,31 +216,44 @@ function UsersTab() {
                 <button onClick={() => setEditingUser(null)} className="p-1 rounded-lg hover:bg-white/10"><X className="w-5 h-5" /></button>
               </div>
               <div className="space-y-4">
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">First Name</label>
-                  <input value={editingUser.firstName || ""} onChange={e => setEditingUser({ ...editingUser, firstName: e.target.value })} className="w-full px-3 py-2 bg-background border border-white/10 rounded-lg text-sm" />
-                </div>
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Last Name</label>
-                  <input value={editingUser.lastName || ""} onChange={e => setEditingUser({ ...editingUser, lastName: e.target.value })} className="w-full px-3 py-2 bg-background border border-white/10 rounded-lg text-sm" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">First Name</label>
+                    <input value={editingUser.firstName || ""} onChange={e => setEditingUser({ ...editingUser, firstName: e.target.value })} className="w-full px-3 py-2 bg-background border border-white/10 rounded-lg text-sm" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Last Name</label>
+                    <input value={editingUser.lastName || ""} onChange={e => setEditingUser({ ...editingUser, lastName: e.target.value })} className="w-full px-3 py-2 bg-background border border-white/10 rounded-lg text-sm" />
+                  </div>
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">Email</label>
                   <input value={editingUser.email || ""} onChange={e => setEditingUser({ ...editingUser, email: e.target.value })} className="w-full px-3 py-2 bg-background border border-white/10 rounded-lg text-sm" />
                 </div>
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Subscription Tier</label>
-                  <select value={editingUser.subscriptionTier || ""} onChange={e => setEditingUser({ ...editingUser, subscriptionTier: e.target.value || null })} className="w-full px-3 py-2 bg-background border border-white/10 rounded-lg text-sm">
-                    <option value="">None</option>
-                    <option value="starter">Starter</option>
-                    <option value="pro">Pro</option>
-                    <option value="enterprise">Enterprise</option>
-                  </select>
+
+                <div className="pt-2 border-t border-white/10">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Crown className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-semibold">Subscription Management</span>
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Subscription Tier</label>
+                    <select value={editingUser.subscriptionTier || ""} onChange={e => setEditingUser({ ...editingUser, subscriptionTier: e.target.value || null })} className="w-full px-3 py-2 bg-background border border-white/10 rounded-lg text-sm">
+                      <option value="">None (No Access)</option>
+                      <option value="starter">Starter ($10/mo)</option>
+                      <option value="pro">Pro ($20/mo)</option>
+                      <option value="enterprise">Enterprise ($100/mo)</option>
+                    </select>
+                    <p className="text-xs text-muted-foreground mt-1">Manually assign a subscription tier to grant or revoke access.</p>
+                  </div>
                 </div>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" checked={editingUser.isAdmin} onChange={e => setEditingUser({ ...editingUser, isAdmin: e.target.checked })} className="w-4 h-4 rounded accent-primary" />
-                  <span className="text-sm">Admin Access</span>
-                </label>
+
+                <div className="pt-2 border-t border-white/10">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" checked={editingUser.isAdmin} onChange={e => setEditingUser({ ...editingUser, isAdmin: e.target.checked })} className="w-4 h-4 rounded accent-primary" />
+                    <span className="text-sm">Admin Access</span>
+                  </label>
+                </div>
               </div>
               <div className="flex gap-3 mt-6">
                 <button onClick={() => setEditingUser(null)} className="flex-1 px-4 py-2.5 rounded-xl border border-white/10 text-sm font-medium hover:bg-white/5">Cancel</button>
@@ -357,7 +370,7 @@ function ScriptsTab() {
                   <td className="py-3 pr-4 text-muted-foreground">{s.downloadCount}</td>
                   <td className="py-3">
                     <div className="flex gap-2">
-                      <button onClick={() => setEditingScript({ ...s })} className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-foreground"><Save className="w-4 h-4" /></button>
+                      <button onClick={() => setEditingScript({ ...s })} title="Edit script" className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-foreground"><Pencil className="w-4 h-4" /></button>
                       <button onClick={() => handleDeleteScript(s.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </td>

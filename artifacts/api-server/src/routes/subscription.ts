@@ -165,6 +165,9 @@ function parsePlan(product: ProductWithPrices) {
 }
 
 router.get("/subscription/plans", async (_req, res) => {
+  res.set("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
   try {
     let dbRows: Awaited<ReturnType<typeof storage.listProductsWithPrices>> = [];
     try {
