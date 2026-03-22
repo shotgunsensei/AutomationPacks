@@ -21,13 +21,37 @@ router.get("/subscription/status", async (req, res) => {
 
   try {
     const user = await storage.getUser(req.user.id);
-    if (!user || !user.stripeSubscriptionId) {
+    if (!user) {
       const data = GetSubscriptionStatusResponse.parse({
         hasSubscription: false,
         tier: null,
         status: null,
         currentPeriodEnd: null,
-        stripeCustomerId: user?.stripeCustomerId || null,
+        stripeCustomerId: null,
+      });
+      res.json(data);
+      return;
+    }
+
+    if (user.subscriptionTier && !user.stripeSubscriptionId) {
+      const data = GetSubscriptionStatusResponse.parse({
+        hasSubscription: true,
+        tier: user.subscriptionTier,
+        status: 'active',
+        currentPeriodEnd: null,
+        stripeCustomerId: user.stripeCustomerId || null,
+      });
+      res.json(data);
+      return;
+    }
+
+    if (!user.stripeSubscriptionId) {
+      const data = GetSubscriptionStatusResponse.parse({
+        hasSubscription: false,
+        tier: null,
+        status: null,
+        currentPeriodEnd: null,
+        stripeCustomerId: user.stripeCustomerId || null,
       });
       res.json(data);
       return;
@@ -37,9 +61,9 @@ router.get("/subscription/status", async (req, res) => {
     const isActive = subscription?.status === 'active' || subscription?.status === 'trialing';
 
     const data = GetSubscriptionStatusResponse.parse({
-      hasSubscription: isActive,
-      tier: isActive ? (user.subscriptionTier || 'starter') : null,
-      status: subscription?.status || null,
+      hasSubscription: isActive || !!user.subscriptionTier,
+      tier: user.subscriptionTier || (isActive ? 'starter' : null),
+      status: subscription?.status || (user.subscriptionTier ? 'active' : null),
       currentPeriodEnd: subscription?.current_period_end ? new Date(Number(subscription.current_period_end) * 1000).toISOString() : null,
       stripeCustomerId: user.stripeCustomerId || null,
     });
@@ -208,35 +232,76 @@ router.get("/subscription/plans", async (_req, res) => {
       return;
     }
 
-    const { getUncachableStripeClient } = await import("../stripeClient");
-    const stripe = await getUncachableStripeClient();
-    const products = await stripe.products.list({ active: true, limit: 10 });
-    const prices = await stripe.prices.list({ active: true, limit: 20 });
+    let plans: Array<{ id: string; name: string; description: string; priceId: string; amount: number; interval: string; features: string[] }> = [];
 
-    const plans = products.data
-      .filter(product => {
-        const tier = product.metadata?.tier;
-        return tier && VALID_TIERS.has(tier);
-      })
-      .map((product) => {
-        const productPrices = prices.data.filter(
-          (p) => (typeof p.product === 'string' ? p.product : p.product) === product.id && p.recurring?.interval === 'month'
-        );
-        const monthlyPrice = productPrices[0];
-        const metadata = product.metadata || {};
-        const features = metadata.features ? metadata.features.split(',').map((f: string) => f.trim()) : [];
+    try {
+      const { getUncachableStripeClient } = await import("../stripeClient");
+      const stripe = await getUncachableStripeClient();
+      const products = await stripe.products.list({ active: true, limit: 10 });
+      const prices = await stripe.prices.list({ active: true, limit: 20 });
 
-        return {
-          id: product.id,
-          name: product.name,
-          description: product.description || '',
-          priceId: monthlyPrice?.id || '',
-          amount: monthlyPrice?.unit_amount || 0,
+      logger.info({ productCount: products.data.length, priceCount: prices.data.length, productNames: products.data.map(p => ({ name: p.name, tier: p.metadata?.tier })) }, "Stripe API returned products");
+
+      plans = products.data
+        .filter(product => {
+          const tier = product.metadata?.tier;
+          return tier && VALID_TIERS.has(tier);
+        })
+        .map((product) => {
+          const productPrices = prices.data.filter(
+            (p) => (typeof p.product === 'string' ? p.product : p.product) === product.id && p.recurring?.interval === 'month'
+          );
+          const monthlyPrice = productPrices[0];
+          const metadata = product.metadata || {};
+          const features = metadata.features ? metadata.features.split(',').map((f: string) => f.trim()) : [];
+
+          return {
+            id: product.id,
+            name: product.name,
+            description: product.description || '',
+            priceId: monthlyPrice?.id || '',
+            amount: monthlyPrice?.unit_amount || 0,
+            interval: 'month',
+            features,
+          };
+        })
+        .sort((a, b) => a.amount - b.amount);
+    } catch (stripeErr) {
+      logger.warn({ error: stripeErr }, "Stripe API call failed");
+    }
+
+    if (plans.length === 0) {
+      logger.warn("No plans from Stripe API, using hardcoded fallback");
+      plans = [
+        {
+          id: 'starter',
+          name: 'Starter',
+          description: 'Perfect for individuals getting started with automation.',
+          priceId: '',
+          amount: 1000,
           interval: 'month',
-          features,
-        };
-      })
-      .sort((a, b) => a.amount - b.amount);
+          features: ['Access to Script Library', 'Up to 10 scripts/month', 'Community support', 'Basic automation tools'],
+        },
+        {
+          id: 'pro',
+          name: 'Pro',
+          description: 'For power users who need AI-generated scripts and more.',
+          priceId: '',
+          amount: 2000,
+          interval: 'month',
+          features: ['Everything in Starter', 'AI Script Generation', 'Unlimited scripts', 'Priority support', 'Advanced automation'],
+        },
+        {
+          id: 'enterprise',
+          name: 'Enterprise',
+          description: 'Full platform access for teams and businesses.',
+          priceId: '',
+          amount: 10000,
+          interval: 'month',
+          features: ['Everything in Pro', 'Custom script development', 'Dedicated account manager', 'SLA guarantee', 'Team collaboration', 'API access'],
+        },
+      ];
+    }
 
     const data = GetSubscriptionPlansResponse.parse({ plans });
     res.json(data);

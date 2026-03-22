@@ -13,6 +13,10 @@ export default function Pricing() {
       login();
       return;
     }
+    if (!priceId) {
+      alert('Checkout is not available yet. Please contact support.');
+      return;
+    }
     checkout({ data: { priceId } }, {
       onSuccess: (res) => {
         window.location.href = res.url;
