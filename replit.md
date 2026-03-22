@@ -59,8 +59,14 @@ artifacts-monorepo/
 - Webhook route registered BEFORE `express.json()` middleware in `app.ts`
 - Products: Starter ($10/mo), Pro ($20/mo), Enterprise ($100/mo) — seeded via `scripts/src/seed-products.ts` with `tier` metadata on each product
 - `webhookHandlers.ts` uses `resolveTier()` — resolves from Stripe product `metadata.tier` (starter/pro/enterprise), falls back to amount-based mapping (≥10000→enterprise, ≥2000→pro, else→starter) if metadata missing
-- `/subscription/plans` endpoint filters to only products with valid `metadata.tier` (starter/pro/enterprise), sorted by price ascending
+- `/subscription/plans` endpoint filters to only products with valid `metadata.tier` (starter/pro/enterprise), sorted by price ascending; has hardcoded fallback if Stripe API returns empty
 - Seed script deactivates legacy products without matching tier metadata before creating new ones
+
+### Production Notes
+- Production DB does NOT have `stripe.*` schema tables — all queries to `stripe.subscriptions`, `stripe.products` etc. are wrapped in try/catch with fallbacks
+- Subscription access is tier-based: if `users.subscription_tier` is set, access is granted regardless of Stripe subscription status
+- Admin-assigned tiers (via admin panel) work without Stripe — no `stripe_subscription_id` needed
+- All middleware (`requireActiveSubscription`, `requireProSubscription`) checks `subscriptionTier` field first, then falls back to Stripe verification
 
 ### GitHub Script Sync
 - `githubSync.ts` syncs scripts from `shotgunsensei/AutomationPacks` on server startup

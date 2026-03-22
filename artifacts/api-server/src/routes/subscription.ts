@@ -57,8 +57,14 @@ router.get("/subscription/status", async (req, res) => {
       return;
     }
 
-    const subscription = await storage.getSubscription(user.stripeSubscriptionId);
-    const isActive = subscription?.status === 'active' || subscription?.status === 'trialing';
+    let subscription: any = null;
+    let isActive = false;
+    try {
+      subscription = await storage.getSubscription(user.stripeSubscriptionId);
+      isActive = subscription?.status === 'active' || subscription?.status === 'trialing';
+    } catch {
+      logger.warn({ userId: user.id }, "Could not query stripe.subscriptions, falling back to tier field");
+    }
 
     const data = GetSubscriptionStatusResponse.parse({
       hasSubscription: isActive || !!user.subscriptionTier,

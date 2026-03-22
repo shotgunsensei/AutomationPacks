@@ -73,14 +73,18 @@ export default function Account() {
                 </div>
 
                 <div className="flex justify-end">
-                  <button 
-                    onClick={handleManageBilling}
-                    disabled={portalPending}
-                    className="px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 font-medium transition-colors flex items-center gap-2"
-                  >
-                    {portalPending ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                    Manage Billing
-                  </button>
+                  {subStatus.stripeCustomerId ? (
+                    <button 
+                      onClick={handleManageBilling}
+                      disabled={portalPending}
+                      className="px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 font-medium transition-colors flex items-center gap-2"
+                    >
+                      {portalPending ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                      Manage Billing
+                    </button>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Your subscription is managed by an administrator.</p>
+                  )}
                 </div>
               </div>
             ) : (

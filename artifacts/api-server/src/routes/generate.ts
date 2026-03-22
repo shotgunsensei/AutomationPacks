@@ -22,16 +22,23 @@ async function requireProSubscription(req: Request, res: Response, next: NextFun
       return;
     }
 
-    if ((user.subscriptionTier !== "pro" && user.subscriptionTier !== "enterprise") || !user.stripeSubscriptionId) {
+    const VALID_PRO_TIERS = new Set(["pro", "enterprise"]);
+    if (!user.subscriptionTier || !VALID_PRO_TIERS.has(user.subscriptionTier)) {
       res.status(403).json({ error: "Pro or Enterprise subscription required" });
       return;
     }
 
-    const subscription = await storage.getSubscription(user.stripeSubscriptionId);
-    const isActive = subscription?.status === "active" || subscription?.status === "trialing";
-    if (!isActive) {
-      res.status(403).json({ error: "Active Pro subscription required" });
-      return;
+    if (user.stripeSubscriptionId) {
+      try {
+        const subscription = await storage.getSubscription(user.stripeSubscriptionId);
+        const isActive = subscription?.status === "active" || subscription?.status === "trialing";
+        if (!isActive) {
+          res.status(403).json({ error: "Active Pro subscription required" });
+          return;
+        }
+      } catch {
+        logger.warn({ userId: user.id }, "Could not verify Stripe subscription status (stripe schema may not exist), allowing based on tier");
+      }
     }
 
     const now = Date.now();

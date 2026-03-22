@@ -10,6 +10,8 @@ import {
 
 const router: IRouter = Router();
 
+const VALID_TIERS = new Set(['starter', 'pro', 'enterprise']);
+
 async function requireActiveSubscription(req: Request, res: Response, next: NextFunction) {
   if (!req.isAuthenticated()) {
     res.status(401).json({ error: "Unauthorized" });
@@ -22,16 +24,21 @@ async function requireActiveSubscription(req: Request, res: Response, next: Next
     return;
   }
 
-  if (!user.stripeSubscriptionId) {
+  if (!user.subscriptionTier || !VALID_TIERS.has(user.subscriptionTier)) {
     res.status(403).json({ error: "Active subscription required" });
     return;
   }
 
-  const subscription = await storage.getSubscription(user.stripeSubscriptionId);
-  const isActive = subscription?.status === 'active' || subscription?.status === 'trialing';
-  if (!isActive) {
-    res.status(403).json({ error: "Active subscription required" });
-    return;
+  if (user.stripeSubscriptionId) {
+    try {
+      const subscription = await storage.getSubscription(user.stripeSubscriptionId);
+      const isActive = subscription?.status === 'active' || subscription?.status === 'trialing';
+      if (!isActive) {
+        res.status(403).json({ error: "Active subscription required" });
+        return;
+      }
+    } catch {
+    }
   }
 
   next();
